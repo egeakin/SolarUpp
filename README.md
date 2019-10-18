@@ -1,4 +1,8 @@
-## Welcome to GitHub Pages
+## Group Members
+Alp Ertürk
+Fırat Ege Akın
+Burak Korkmaz
+Fatih Çelik
 
 You can use the [editor on GitHub](https://github.com/egeakin/Solar-Scale/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
 
