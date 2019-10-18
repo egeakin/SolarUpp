@@ -28,4 +28,5 @@ SolarUpp is a green field project which aims to increase solar energy usage by g
 Project Specification Report: [Click here to go to Project Specification Report](https://github.com/egeakin/SolarUpp/blob/master/Project%20Specification%20Report.pdf)
 
 ![](https://github.com/egeakin/SolarUpp/blob/master/Screen%20Shot%202019-10-18%20at%2015.08.29.png)
+[[https://github.com/egeakin/SolarUpp/blob/master/Screen%20Shot%202019-10-18%20at%2015.08.29.png]]
 
