@@ -25,7 +25,7 @@ After solar panel plantation, generated solar energy amount will be gathered fro
 SolarUpp is a green field project which aims to increase solar energy usage by gathering information from rooftop’s images which are taken from above. Using images of rooftops to have a feasibility study is an essential point for large scale using by users.
 
 ## Reports
-Project Specification Report: [Project Specification Report](https://jekyllrb.com/)
+Project Specification Report: [Project Specification Report](https://github.com/egeakin/SolarUpp/blob/master/Project%20Specification%20Report.pdf)
 
 Analysis Report: 
 
