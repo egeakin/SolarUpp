@@ -24,7 +24,10 @@ After solar panel plantation, generated solar energy amount will be gathered fro
 
 SolarUpp is a green field project which aims to increase solar energy usage by gathering information from rooftop’s images which are taken from above. Using images of rooftops to have a feasibility study is an essential point for large scale using by users.
 
-You can use the [editor on GitHub](https://github.com/egeakin/Solar-Scale/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+## Reports
+Project Specification Report: [Project Specification Report](https://jekyllrb.com/)
+
+Analysis Report: 
 
 Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
