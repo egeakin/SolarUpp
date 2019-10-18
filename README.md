@@ -1,4 +1,5 @@
-<img> ![](https://github.com/egeakin/SolarUpp/blob/master/Screen%20Shot%202019-10-18%20at%2015.08.29.png) </img>
+![](https://github.com/egeakin/SolarUpp/blob/master/Screen%20Shot%202019-10-18%20at%2015.08.29.png)
+<img src= "https://github.com/egeakin/SolarUpp/blob/master/Screen%20Shot%202019-10-18%20at%2015.08.29.png" </img>
 ## Group Members
 Alp Ertürk - 21602659
 
