@@ -31,4 +31,6 @@ Project Specification Report: [Click here to go to Analysis Report](https://gith
 
 High Level Design Report: [Click here to go to High Level Design Report](https://github.com/egeakin/SolarUpp/blob/master/High-Level%20Design%20Report.pdf)
 
+Low Level Design Report: [Click here to go to Low Level Design Report](https://github.com/egeakin/SolarUpp/blob/master/SolarUpp%20Low-Level%20Design%20Report.pdf)
+
 ![](https://github.com/egeakin/SolarUpp/blob/master/Screen%20Shot%202019-10-18%20at%2015.08.29.png)
