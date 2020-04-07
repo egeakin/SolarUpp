@@ -22,7 +22,7 @@ Beside a feasibility study on energy production, SolarUpp will also provide 3D m
 
 After solar panel plantation, generated solar energy amount will be gathered from registered users’s inverters in time intervals like one week. Gathered information will be uploaded to our system to compare expected and generated value of solar energy. Recent weather conditions in the area of specified building will be checked to see if there are any additional reasons which cause low energy production than expected rather than unexpected weather conditions. For example, if a rooftop have great difference between expected and produced energy level in optimum weather conditions, registered users will be informed with a warning message about the need of maintenance check or an unexpected problem. 
 
-SolarUpp is a green field project which aims to increase solar energy usage by gathering information from rooftop’s images which are taken from above. Using images of rooftops to have a feasibility study is an essential point for large scale using by users.
+SolarUpp is a green field project which aims to increase solar energy usage by gathering information from rooftop’s images which are taken from above. Using images of rooftops to have a feasibility study is an essential point for large scale using by users..
 
 ## Reports
 Project Specification Report: [Click here to go to Project Specification Report](https://github.com/egeakin/SolarUpp/blob/master/Project%20Specification%20Report.pdf)
