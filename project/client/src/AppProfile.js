@@ -5,7 +5,7 @@ export class AppProfile extends Component {
   constructor() {
     super();
     this.state = {
-      expanded: false
+      expanded: false,
     };
     this.onClick = this.onClick.bind(this);
   }
@@ -27,7 +27,7 @@ export class AppProfile extends Component {
         </button>
         <ul
           className={classNames({
-            "layout-profile-expanded": this.state.expanded
+            "layout-profile-expanded": this.state.expanded,
           })}
         >
           <li>

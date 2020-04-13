@@ -32,16 +32,37 @@ import { ThemeProvider as MuiThemeProvider } from "@material-ui/core/styles";
 import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
 import themeFile from "./util/theme";
 import jwtDecode from "jwt-decode";
+import axios from "axios";
+// Redux
+import { Provider } from "react-redux";
+import store from "./redux/store";
+import { SET_AUTHENTICATED } from "./redux/types";
+import { logoutUser, getUserData } from "./redux/actions/userAction";
 // Components
 import AuthRoute from "./util/AuthRoute";
+import Profile from "./components/Profile";
 // Pages
 import signup from "./pages/signup";
 import login from "./pages/login";
 
 const theme = createMuiTheme(themeFile);
 
-let authenticated;
+let authenticated = false;
+
 const token = localStorage.FBIdToken;
+if (token) {
+  const decodedToken = jwtDecode(token);
+  if (decodedToken.exp < Date.now() / 1000) {
+    store.dispatch(logoutUser());
+    window.location.href = "#/login";
+    authenticated = false;
+  } else {
+    store.dispatch({ type: SET_AUTHENTICATED });
+    axios.defaults.headers.common["Authorization"] = token;
+    store.dispatch(getUserData());
+    authenticated = true;
+  }
+}
 
 class App extends Component {
   constructor() {
@@ -51,7 +72,7 @@ class App extends Component {
       layoutColorMode: "dark",
       staticMenuInactive: false,
       overlayMenuActive: false,
-      mobileMenuActive: false
+      mobileMenuActive: false,
     };
 
     this.onWrapperClick = this.onWrapperClick.bind(this);
@@ -65,7 +86,7 @@ class App extends Component {
     if (!this.menuClick) {
       this.setState({
         overlayMenuActive: false,
-        mobileMenuActive: false
+        mobileMenuActive: false,
       });
     }
 
@@ -78,17 +99,17 @@ class App extends Component {
     if (this.isDesktop()) {
       if (this.state.layoutMode === "overlay") {
         this.setState({
-          overlayMenuActive: !this.state.overlayMenuActive
+          overlayMenuActive: !this.state.overlayMenuActive,
         });
       } else if (this.state.layoutMode === "static") {
         this.setState({
-          staticMenuInactive: !this.state.staticMenuInactive
+          staticMenuInactive: !this.state.staticMenuInactive,
         });
       }
     } else {
       const mobileMenuActive = this.state.mobileMenuActive;
       this.setState({
-        mobileMenuActive: !mobileMenuActive
+        mobileMenuActive: !mobileMenuActive,
       });
     }
 
@@ -103,7 +124,7 @@ class App extends Component {
     if (!event.item.items) {
       this.setState({
         overlayMenuActive: false,
-        mobileMenuActive: false
+        mobileMenuActive: false,
       });
     }
   }
@@ -114,8 +135,8 @@ class App extends Component {
         label: "Dashboard",
         icon: "pi pi-fw pi-home",
         command: () => {
-          window.location = "home/";
-        }
+          window.location = "/";
+        },
       },
       {
         label: "Menu Modes",
@@ -124,14 +145,14 @@ class App extends Component {
           {
             label: "Static Menu",
             icon: "pi pi-fw pi-bars",
-            command: () => this.setState({ layoutMode: "static" })
+            command: () => this.setState({ layoutMode: "static" }),
           },
           {
             label: "Overlay Menu",
             icon: "pi pi-fw pi-bars",
-            command: () => this.setState({ layoutMode: "overlay" })
-          }
-        ]
+            command: () => this.setState({ layoutMode: "overlay" }),
+          },
+        ],
       },
       {
         label: "Menu Colors",
@@ -140,21 +161,25 @@ class App extends Component {
           {
             label: "Dark",
             icon: "pi pi-fw pi-bars",
-            command: () => this.setState({ layoutColorMode: "dark" })
+            command: () => this.setState({ layoutColorMode: "dark" }),
           },
           {
             label: "Light",
             icon: "pi pi-fw pi-bars",
-            command: () => this.setState({ layoutColorMode: "light" })
-          }
-        ]
+            command: () => this.setState({ layoutColorMode: "light" }),
+          },
+        ],
       },
       {
         label: "Components",
         icon: "pi pi-fw pi-globe",
         badge: "9",
         items: [
-          { label: "Sample Page", icon: "pi pi-fw pi-th-large", to: "/sample" },
+          {
+            label: "Sample Page",
+            icon: "pi pi-fw pi-th-large",
+            to: "/sample",
+          },
           { label: "Forms", icon: "pi pi-fw pi-file", to: "/forms" },
           { label: "Data", icon: "pi pi-fw pi-table", to: "/data" },
           { label: "Panels", icon: "pi pi-fw pi-list", to: "/panels" },
@@ -162,15 +187,19 @@ class App extends Component {
           { label: "Menus", icon: "pi pi-fw pi-plus", to: "/menus" },
           { label: "Messages", icon: "pi pi-fw pi-spinner", to: "/messages" },
           { label: "Charts", icon: "pi pi-fw pi-chart-bar", to: "/charts" },
-          { label: "Misc", icon: "pi pi-fw pi-upload", to: "/misc" }
-        ]
+          { label: "Misc", icon: "pi pi-fw pi-upload", to: "/misc" },
+        ],
       },
       {
         label: "Template Pages",
         icon: "pi pi-fw pi-file",
         items: [
-          { label: "Empty Page", icon: "pi pi-fw pi-circle-off", to: "/empty" }
-        ]
+          {
+            label: "Empty Page",
+            icon: "pi pi-fw pi-circle-off",
+            to: "/empty",
+          },
+        ],
       },
       {
         label: "Menu Hierarchy",
@@ -186,18 +215,18 @@ class App extends Component {
                 items: [
                   { label: "Submenu 1.1.1", icon: "pi pi-fw pi-bookmark" },
                   { label: "Submenu 1.1.2", icon: "pi pi-fw pi-bookmark" },
-                  { label: "Submenu 1.1.3", icon: "pi pi-fw pi-bookmark" }
-                ]
+                  { label: "Submenu 1.1.3", icon: "pi pi-fw pi-bookmark" },
+                ],
               },
               {
                 label: "Submenu 1.2",
                 icon: "pi pi-fw pi-bookmark",
                 items: [
                   { label: "Submenu 1.2.1", icon: "pi pi-fw pi-bookmark" },
-                  { label: "Submenu 1.2.2", icon: "pi pi-fw pi-bookmark" }
-                ]
-              }
-            ]
+                  { label: "Submenu 1.2.2", icon: "pi pi-fw pi-bookmark" },
+                ],
+              },
+            ],
           },
           {
             label: "Submenu 2",
@@ -209,35 +238,21 @@ class App extends Component {
                 items: [
                   { label: "Submenu 2.1.1", icon: "pi pi-fw pi-bookmark" },
                   { label: "Submenu 2.1.2", icon: "pi pi-fw pi-bookmark" },
-                  { label: "Submenu 2.1.3", icon: "pi pi-fw pi-bookmark" }
-                ]
+                  { label: "Submenu 2.1.3", icon: "pi pi-fw pi-bookmark" },
+                ],
               },
               {
                 label: "Submenu 2.2",
                 icon: "pi pi-fw pi-bookmark",
                 items: [
                   { label: "Submenu 2.2.1", icon: "pi pi-fw pi-bookmark" },
-                  { label: "Submenu 2.2.2", icon: "pi pi-fw pi-bookmark" }
-                ]
-              }
-            ]
-          }
-        ]
+                  { label: "Submenu 2.2.2", icon: "pi pi-fw pi-bookmark" },
+                ],
+              },
+            ],
+          },
+        ],
       },
-      {
-        label: "Sign Up",
-        icon: "pi pi-fw pi-user-plus",
-        command: () => {
-          window.location = "#/signup";
-        }
-      },
-      {
-        label: "Log In",
-        icon: "pi pi-fw pi-sign-in",
-        command: () => {
-          window.location = "#/login";
-        }
-      }
     ];
   }
 
@@ -271,8 +286,8 @@ class App extends Component {
   render() {
     const logo =
       this.state.layoutColorMode === "dark"
-        ? "assets/layout/images/logo-white.svg"
-        : "assets/layout/images/logo.svg";
+        ? "assets/layout/images/icon.png"
+        : "assets/layout/images/icon.png";
 
     const wrapperClass = classNames("layout-wrapper", {
       "layout-overlay": this.state.layoutMode === "overlay",
@@ -281,61 +296,57 @@ class App extends Component {
         this.state.staticMenuInactive && this.state.layoutMode === "static",
       "layout-overlay-sidebar-active":
         this.state.overlayMenuActive && this.state.layoutMode === "overlay",
-      "layout-mobile-sidebar-active": this.state.mobileMenuActive
+      "layout-mobile-sidebar-active": this.state.mobileMenuActive,
     });
 
     const sidebarClassName = classNames("layout-sidebar", {
       "layout-sidebar-dark": this.state.layoutColorMode === "dark",
-      "layout-sidebar-light": this.state.layoutColorMode === "light"
+      "layout-sidebar-light": this.state.layoutColorMode === "light",
     });
 
     return (
-      <div className={wrapperClass} onClick={this.onWrapperClick}>
-        <AppTopbar onToggleMenu={this.onToggleMenu} />
-        <div
-          ref={el => (this.sidebar = el)}
-          className={sidebarClassName}
-          onClick={this.onSidebarClick}
-        >
-          <div className="layout-logo">
-            <img alt="Logo" src={logo} />
+      <MuiThemeProvider theme={theme}>
+        <Provider store={store}>
+          <div className={wrapperClass} onClick={this.onWrapperClick}>
+            <AppTopbar onToggleMenu={this.onToggleMenu} />
+            <div
+              ref={(el) => (this.sidebar = el)}
+              className={sidebarClassName}
+              onClick={this.onSidebarClick}
+            >
+              <div className="layout-logo">
+                <img alt="Logo" src={logo} width="100" height="100" />
+              </div>
+              <Profile />
+              <AppMenu
+                model={this.menu}
+                onMenuItemClick={this.onMenuItemClick}
+              />
+            </div>
+            <div className="layout-main">
+              <Route path="/" exact component={Dashboard} />
+              <Route path="/forms" component={FormsDemo} />
+              <Route path="/sample" component={SampleDemo} />
+              <Route path="/data" component={DataDemo} />
+              <Route path="/panels" component={PanelsDemo} />
+              <Route path="/overlays" component={OverlaysDemo} />
+              <Route path="/menus" component={MenusDemo} />
+              <Route path="/messages" component={MessagesDemo} />
+              <Route path="/charts" component={ChartsDemo} />
+              <Route path="/misc" component={MiscDemo} />
+              <Route path="/empty" component={EmptyPage} />
+              <Route path="/documentation" component={Documentation} />
+
+              <Route>
+                <AuthRoute exact path="/signup" component={signup} />
+              </Route>
+              <Route>
+                <AuthRoute exact path="/Login" component={login} />
+              </Route>
+            </div>
           </div>
-          <AppProfile />
-          <AppMenu model={this.menu} onMenuItemClick={this.onMenuItemClick} />
-        </div>
-        <div className="layout-main">
-          <Route path="/" exact component={Dashboard} />
-          <Route path="/forms" component={FormsDemo} />
-          <Route path="/sample" component={SampleDemo} />
-          <Route path="/data" component={DataDemo} />
-          <Route path="/panels" component={PanelsDemo} />
-          <Route path="/overlays" component={OverlaysDemo} />
-          <Route path="/menus" component={MenusDemo} />
-          <Route path="/messages" component={MessagesDemo} />
-          <Route path="/charts" component={ChartsDemo} />
-          <Route path="/misc" component={MiscDemo} />
-          <Route path="/empty" component={EmptyPage} />
-          <Route path="/documentation" component={Documentation} />
-          <MuiThemeProvider theme={theme}>
-            <Route>
-              <AuthRoute
-                exact
-                path="/signup"
-                component={signup}
-                authenticated={authenticated}
-              />
-            </Route>
-            <Route>
-              <AuthRoute
-                exact
-                path="/Login"
-                component={login}
-                authenticated={authenticated}
-              />
-            </Route>
-          </MuiThemeProvider>
-        </div>
-      </div>
+        </Provider>
+      </MuiThemeProvider>
     );
   }
 }

@@ -8,14 +8,14 @@ class AppSubmenu extends Component {
     className: null,
     items: null,
     onMenuItemClick: null,
-    root: false
+    root: false,
   };
 
   static propTypes = {
     className: PropTypes.string,
     items: PropTypes.array,
     onMenuItemClick: PropTypes.func,
-    root: PropTypes.bool
+    root: PropTypes.bool,
   };
 
   constructor(props) {
@@ -41,7 +41,7 @@ class AppSubmenu extends Component {
     if (this.props.onMenuItemClick) {
       this.props.onMenuItemClick({
         originalEvent: event,
-        item: item
+        item: item,
       });
     }
   }
@@ -72,7 +72,7 @@ class AppSubmenu extends Component {
         <NavLink
           activeClassName="active-route"
           to={item.to}
-          onClick={e => this.onMenuItemClick(e, item, i)}
+          onClick={(e) => this.onMenuItemClick(e, item, i)}
           exact
           target={item.target}
         >
@@ -83,7 +83,7 @@ class AppSubmenu extends Component {
       return (
         <a
           href={item.url}
-          onClick={e => this.onMenuItemClick(e, item, i)}
+          onClick={(e) => this.onMenuItemClick(e, item, i)}
           target={item.target}
         >
           {content}
@@ -98,7 +98,7 @@ class AppSubmenu extends Component {
       this.props.items.map((item, i) => {
         let active = this.state.activeIndex === i;
         let styleClass = classNames(item.badgeStyleClass, {
-          "active-menuitem": active && !item.to
+          "active-menuitem": active && !item.to,
         });
 
         return (
@@ -122,17 +122,17 @@ class AppSubmenu extends Component {
 export class AppMenu extends Component {
   static defaultProps = {
     model: null,
-    onMenuItemClick: null
+    onMenuItemClick: null,
   };
 
   static propTypes = {
     model: PropTypes.array,
-    onMenuItemClick: PropTypes.func
+    onMenuItemClick: PropTypes.func,
   };
 
   render() {
     return (
-      <div className="layout-menu-container">
+      <div className="layout-menu">
         <AppSubmenu
           items={this.props.model}
           className="layout-menu"
