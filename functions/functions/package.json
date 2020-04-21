@@ -2,11 +2,11 @@
   "name": "functions",
   "description": "Cloud Functions for Firebase",
   "scripts": {
-    "serve": "C:/Users/fatih/AppData/Roaming/npm/firebase serve --only functions",
-    "shell": "C:/Users/fatih/AppData/Roaming/npm/firebase functions:shell",
+    "serve": "firebase serve --only functions",
+    "shell": "firebase functions:shell",
     "start": "npm run shell",
-    "deploy": "C:/Users/fatih/AppData/Roaming/npm/firebase deploy --only functions",
-    "logs": "C:/Users/fatih/AppData/Roaming/npm/firebase functions:log"
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
   },
   "engines": {
     "node": "8"
