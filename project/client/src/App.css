@@ -16,12 +16,12 @@ a {
   text-decoration: none;
 }
 
-.container {
-  width: 300px;
+.containerr {
+  width: 272px;
   background-color: #fff;
 
   display: block;
-  margin: 0 auto;
+  margin: 5px;
 
   border-radius: 10px;
   padding-bottom: 50px;
@@ -72,6 +72,7 @@ a {
 .temperature-value {
   width: 300px;
   height: 60px;
+  text-align: center;
 }
 
 .temperature-value p {

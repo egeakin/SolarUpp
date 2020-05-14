@@ -54,7 +54,7 @@ if (token) {
   const decodedToken = jwtDecode(token);
   if (decodedToken.exp < Date.now() / 1000) {
     store.dispatch(logoutUser());
-    window.location.href = "#/login";
+    //window.location.href = "#/login";
     authenticated = false;
   } else {
     store.dispatch({ type: SET_AUTHENTICATED });
