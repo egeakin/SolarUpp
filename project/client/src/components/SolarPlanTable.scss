@@ -1,0 +1,161 @@
+.datatable-solarPlans {
+    .solarPlan-badge {
+        border-radius: 2px;
+        padding: .25em .5em;
+        text-transform: uppercase;
+        font-weight: 700;
+        font-size: 12px;
+        letter-spacing: .3px;
+
+        &.energyProduction-high {
+            background-color: #C8E6C9;
+            color: #256029;
+        }
+    
+        &.energyProduction-medium {
+            background-color: #FFD8B2;
+            color: #805B36;
+            
+        }
+    
+        &.energyProduction-low {
+            background-color: #FFCDD2;
+            color: #C63737;
+           
+        }
+        
+        &.estimatedProfit10Year-11200 {
+            background-color: #C8E6C9;
+            color: #256029;
+            
+        }
+    
+        &.estimatedProfit10Year-3000 {
+            background-color: #FFD8B2;
+            color: #805B36;
+         
+        }
+    
+        &.estimatedProfit10Year-1000 {
+            background-color: #FFCDD2;
+            color: #C63737;
+           
+        }
+        
+        &.estimatedProfit20Year-11200 {
+            background-color: #C8E6C9;
+            color: #256029;
+           
+        }
+    
+        &.estimatedProfit20Year-3000 {
+            background-color: #FFD8B2;
+            color: #805B36;
+          
+        }
+    
+        &.estimatedProfit20Year-1000 {
+            background-color: #FFCDD2;
+            color: #C63737;
+         
+        }
+    
+    
+        &.panelEfficiency-28 {
+            background-color: #C8E6C9;
+            color: #256029;
+           
+        }
+    
+        &.panelEfficiency-22 {
+            background-color: #FFD8B2;
+            color: #805B36;
+          
+        }
+    
+        &.panelEfficiency-15 {
+            background-color: #FFCDD2;
+            color: #C63737;
+          
+        }
+    
+        &.cost-cheap {
+            background-color: #C8E6C9;
+            color: #256029;
+        
+        }
+    
+        &.cost-average {
+            background-color: #FFD8B2;
+            color: #805B36;
+       
+        }
+    
+        &.cost-expensive {
+            background-color: #FFCDD2;
+            color: #C63737;
+            
+        }
+    
+        
+    }
+    
+    .p-progressbar {
+        height: 8px;
+        background-color: #D8DADC;
+
+        .p-progressbar-value {
+            background-color: #00ACAD;
+            transition: none;
+        }
+    }
+    .p-multiselect-representative-option {
+        display: inline-block;
+        vertical-align: middle;
+
+        img {
+            vertical-align: middle;
+            width: 24px;
+        }
+
+        span {
+            margin-top: .125em;
+        }
+    }
+
+    .p-paginator {
+        .p-dropdown {
+            float: left;
+        }
+
+        .p-paginator-current {
+            float: right;
+        }
+    }
+
+    
+
+    .p-column-filter {
+        display: block;
+
+        input {
+            width: 100%;
+        }
+    }
+
+    .p-datatable-globalfilter-container {
+        float: right;
+
+        input {
+            width: 200px;
+        }
+    }
+
+    .p-datepicker {
+        min-width: 25em;
+
+        td {
+            font-weight: 400;
+        }
+    }
+}

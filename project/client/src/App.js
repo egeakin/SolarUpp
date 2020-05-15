@@ -16,6 +16,8 @@ import { ChartsDemo } from "./components/ChartsDemo";
 import { MiscDemo } from "./components/MiscDemo";
 import { EmptyPage } from "./components/EmptyPage";
 import { Documentation } from "./components/Documentation";
+import {Feasibility} from './components/Feasibility';
+import { SolarPlans } from './components/SolarPlans';
 import "primereact/resources/themes/nova-light/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
@@ -199,6 +201,8 @@ class App extends Component {
             icon: "pi pi-fw pi-circle-off",
             to: "/empty",
           },
+          {label: 'Feasibility Study', icon: 'pi pi-fw pi-circle-off', to: '/feasibility'},
+          {label: 'See Solar Plans', icon: 'pi pi-fw pi-circle-off', to: '/solarPlans'}
         ],
       },
       {
@@ -335,6 +339,8 @@ class App extends Component {
               <Route path="/charts" component={ChartsDemo} />
               <Route path="/misc" component={MiscDemo} />
               <Route path="/empty" component={EmptyPage} />
+              <Route path="/feasibility" component={Feasibility} />
+              <Route path="/solarPlans" component={SolarPlans} />
               <Route path="/documentation" component={Documentation} />
 
               <Route>
