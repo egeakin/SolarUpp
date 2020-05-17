@@ -18,6 +18,7 @@ import { EmptyPage } from "./components/EmptyPage";
 import { Documentation } from "./components/Documentation";
 import {Feasibility} from './components/Feasibility';
 import { SolarPlans } from './components/SolarPlans';
+import { ComparePlans } from "./components/ComparePlans";
 import "primereact/resources/themes/nova-light/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
@@ -202,7 +203,8 @@ class App extends Component {
             to: "/empty",
           },
           {label: 'Feasibility Study', icon: 'pi pi-fw pi-circle-off', to: '/feasibility'},
-          {label: 'See Solar Plans', icon: 'pi pi-fw pi-circle-off', to: '/solarPlans'}
+          {label: 'See Solar Plans', icon: 'pi pi-fw pi-circle-off', to: '/solarPlans'},
+          {label: "Compare Plans", icon: "pi pi-fw pi-sort-alt", to: "/comparePlans"},
         ],
       },
       {
@@ -342,6 +344,7 @@ class App extends Component {
               <Route path="/feasibility" component={Feasibility} />
               <Route path="/solarPlans" component={SolarPlans} />
               <Route path="/documentation" component={Documentation} />
+              <Route path="/ComparePlans" component={ComparePlans} />
 
               <Route>
                 <AuthRoute exact path="/signup" component={signup} />

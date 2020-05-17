@@ -26,6 +26,10 @@ const {
   markNotificationsRead
 } = require("./handlers/users");
 
+const {
+  sendMail
+} = require("./handlers/emails");
+
 // scream routes
 app.get("/screams", getAllScreams);
 app.post("/scream", FBAuth, postOneScream);
@@ -43,6 +47,9 @@ app.post("/user", FBAuth, addUserDetails);
 app.get("/user", FBAuth, getAuthenticatedUser);
 app.get("/user/:handle", getUserDetails);
 app.post("/notifications", FBAuth, markNotificationsRead);
+app.post("/changePassword", FBAuth, changePassword)
+
+app.post("/emails/sendMail", sendMail);
 
 //region('europe-west1)
 exports.api = functions.https.onRequest(app);
