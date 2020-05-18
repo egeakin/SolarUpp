@@ -9,7 +9,7 @@ import { FormsDemo } from "./components/FormsDemo";
 import { SampleDemo } from "./components/SampleDemo";
 import { DataDemo } from "./components/DataDemo";
 import { PanelsDemo } from "./components/PanelsDemo";
-import { OverlaysDemo } from "./components/OverlaysDemo";
+import { FindAddress } from "./components/FindAddress";
 import { MenusDemo } from "./components/MenusDemo";
 import { MessagesDemo } from "./components/MessagesDemo";
 import { ChartsDemo } from "./components/ChartsDemo";
@@ -185,7 +185,7 @@ class App extends Component {
           { label: "Forms", icon: "pi pi-fw pi-file", to: "/forms" },
           { label: "Data", icon: "pi pi-fw pi-table", to: "/data" },
           { label: "Panels", icon: "pi pi-fw pi-list", to: "/panels" },
-          { label: "Overlays", icon: "pi pi-fw pi-clone", to: "/overlays" },
+          { label: "Find Address", icon: "pi pi-fw pi-clone", to: "/findAddress" },
           { label: "Menus", icon: "pi pi-fw pi-plus", to: "/menus" },
           { label: "Messages", icon: "pi pi-fw pi-spinner", to: "/messages" },
           { label: "Charts", icon: "pi pi-fw pi-chart-bar", to: "/charts" },
@@ -333,7 +333,7 @@ class App extends Component {
               <Route path="/sample" component={SampleDemo} />
               <Route path="/data" component={DataDemo} />
               <Route path="/panels" component={PanelsDemo} />
-              <Route path="/overlays" component={OverlaysDemo} />
+              <Route path="/findAddress" component={FindAddress} />
               <Route path="/menus" component={MenusDemo} />
               <Route path="/messages" component={MessagesDemo} />
               <Route path="/charts" component={ChartsDemo} />

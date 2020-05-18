@@ -1,8 +1,7 @@
 import React, {Component, useState} from 'react';
 // import { hot } from "react-hot-loader/root";
 import { Viewer, Entity, PathGraphics, PointGraphics, Polyline, LabelGraphics, PolylineGraphics, PolylineCollection, ScreenSpaceCameraController, EntityDescription, ScreenSpaceEventHandler,RectangleGraphics, GeoJsonDataSource, KmlDataSource, Cesium3DTileset, Camera, CameraFlyTo, CustomDataSource, PolygonGraphics, ScreenSpaceEvent, EntityStaticDescription, Label} from "resium";
-import { Cartesian3, Cartesian2, PolylineDashMaterialProperty, WallGraphics, CesiumMath, Rectangle, createWorldTerrain, Color, Transforms} from "cesium";
-// import { IonResource, Rectangle, CesiumMath, PolylineDashMaterialProperty, Transforms, ScreenSpaceEventType, KeyboardEventModifier} from "cesium";
+import { Cartesian3, Cartesian2, PolylineDashMaterialProperty, WallGraphics, CesiumMath, Cesium,Ion,  BingMapsApi, BingMapsStyle, BingMapsImageryProvider, Rectangle, createWorldTerrain, Color, Transforms} from "cesium";
 import {Growl} from 'primereact/growl';
 import {Button} from 'primereact/button';
 import {Messages} from 'primereact/messages';
@@ -10,71 +9,29 @@ import {Dialog} from 'primereact/dialog';
 import {Inplace,InplaceDisplay,InplaceContent} from 'primereact/inplace';
 import {InputText} from 'primereact/inputtext';
 import {Card} from 'primereact/card';
-import jsPDF from 'jspdf'
-import html2canvas from 'html2canvas'
+import { Map,Polygon, GoogleApiWrapper, GoogleAPI} from 'google-maps-react';
+import { animateScroll } from "react-scroll";
+import {Steps} from 'primereact/steps';
+import { Link } from "react-router-dom";
 
 
-const data = {
-    type: "Feature",
-    properties: {
-      name: "Coors Field",
-      amenity: "Baseball Stadium",
-      popupContent: "This is where the Rockies play!",
-    },
-    geometry: {
-      type: "Point",
-      coordinates: [-104.99404, 39.75621],
-    },
-  };
+Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJiOTNjYjIwOC00YmQxLTRiZTAtYTFlNi03MjQ1NWMzMmE1YjkiLCJpZCI6MTkyMTIsInNjb3BlcyI6WyJhc3IiLCJnYyJdLCJpYXQiOjE1ODkyOTM3NTZ9.Rx7wwt26JrRXp_upYCawvQDurrHOIn2ddb109kXNv5k"
 
-  const options = {
+const options = {
     enableHighAccuracy: true,
     timeout: 5000,
     maximumAge: 0
-  };
+};
 
-  const positions = [
-    new Cartesian3(-75, 35, 0),
-    new Cartesian3(-125, 35, 0),
-    new Cartesian3(-125, 135, 0),
-  ];
-  const center = Cartesian3.fromDegrees(-75.59777, 40.03883);
+const items = [
+    {label: 'Find Address'},
+    {label: 'Feasibility Study'},
+    {label: 'Maintenance'},
+    {label: 'Track System'}
+];
 
+export class FindAddress extends Component{
 
-export class OverlaysDemo extends Component{
-
-    printDocument() {
-        const input = document.getElementById('viewer');
-        const pdf = new jsPDF();
-        if (pdf) {
-          html2canvas(input, {
-            useCORS: true
-          })
-            .then(canvas => {
-              const imgData = canvas.toDataURL('image/png');
-              console.log(imgData); //Maybe blank, maybe full image, maybe half of image
-              pdf.addImage(imgData, 'PNG', 10, 10, 200, 200);
-              pdf.save('download.pdf');
-            });
-        }
-    }
-
-    savePDF() {
-
-        const printArea = document.getElementById("viewer");
-
-        html2canvas(printArea).then(canvas => {
-            const dataURL = canvas.toDataURL();
-            const pdf = new jsPDF();
-
-            pdf.addImage(dataURL, 'JPEG', 20, 20, 180, 160);
-
-            pdf.save('saved.pdf')
-        })
-
-    }
-    
-    
     componentDidMount(){
         this.getLocation()
         const {viewer} = this;
@@ -103,6 +60,10 @@ export class OverlaysDemo extends Component{
         return radians * (180/pi);
     }
 
+    deg2rad(deg) {
+        return deg * (Math.PI/180)
+    }
+
     constructor(props) {
         super(props);
         this.cesium = React.createRef();
@@ -110,8 +71,13 @@ export class OverlaysDemo extends Component{
             latitude: null,
             longitude: null,
             pointPositions: [],
+            pointPositionsX: [],
+            pointPositionsY: [],
             cartesian3dPositions: [],
+            cartesian3dPositionsX: [],
+            cartesian3dPositionsY: [],
             canDrawLine: false,
+            googlemap: null,
             userData: {
                 type: null,
                 properties: {
@@ -125,9 +91,12 @@ export class OverlaysDemo extends Component{
                 }
             },
             displayPosition: false,
+            drawedPositions: [],
             position: 'topright',
             height: 0.0,
-            width: 0.0
+            width: 0.0,
+            area: 0.0,
+            circumference: 0.0
         };
         this.showInfo = this.showInfo.bind(this);
         this.getLocation = this.getLocation.bind(this);
@@ -135,24 +104,19 @@ export class OverlaysDemo extends Component{
         this.action  = this.action.bind(this);
         this.onClick = this.onClick.bind(this);
         this.onHide = this.onHide.bind(this);
-        this.calculateWidthHeight = this.calculateWidthHeight.bind(this);
+        this.calculateCircumference = this.calculateCircumference.bind(this);
         this.deg2rad = this.deg2rad.bind(this)
         this.getDistanceFromLatLonInM = this.getDistanceFromLatLonInM.bind(this)
-        this.savePDF = this.savePDF.bind(this)
-        this.printDocument = this.printDocument.bind(this)
-
+        this.polygonArea = this.polygonArea.bind(this)
     }
 
     action(label, evt) {
-        
-        if(this.state.pointPositions.length >= 3){
-            this.state.canDrawLine = true;
-            this.calculateWidthHeight();
-        }
-
         let coords = this.getLocationFromScreenXY(evt.position.x, evt.position.y);
         let lon = this.radiansToDegrees(coords.longitude)
         let lat = this.radiansToDegrees(coords.latitude);
+
+        this.state.cartesian3dPositionsX.push(lon)
+        this.state.cartesian3dPositionsY.push(lat)
 
         let newCoord = new Cartesian3(lon, lat, 0);
         this.state.cartesian3dPositions.push(newCoord);
@@ -162,6 +126,11 @@ export class OverlaysDemo extends Component{
             x: Number(lon),
             y: Number(lat)
         })
+        console.log(this.state.pointPositions)
+
+        this.state.pointPositionsX.push(Number(lon))
+        this.state.pointPositionsY.push(Number(lat))
+
         console.log(this.state.pointPositions)
     }
     
@@ -201,7 +170,6 @@ export class OverlaysDemo extends Component{
 
     onClick(name, position) {
         this.state.displayPosition = true;
-        // this.state.position = 'topright'
     }
 
 
@@ -219,10 +187,6 @@ export class OverlaysDemo extends Component{
         );
     }
 
-    deg2rad(deg) {
-        return deg * (Math.PI/180)
-    }
-
     getDistanceFromLatLonInM(lat1,lon1,lat2,lon2) {
         var R = 6371; // Radius of the earth in km
         var dLat = this.deg2rad(lat2-lat1);  // deg2rad below
@@ -237,10 +201,41 @@ export class OverlaysDemo extends Component{
         return d*1000;
     }
       
+    polygonArea(X, Y, numPoints) 
+    { 
+        let area = 0;   // Accumulates area 
+        let j = numPoints-1; 
+        for (let i=0; i<numPoints; i++)
+        { 
+            area += (X[j]+X[i]) * (Y[j]-Y[i]); 
+            j = i;  //j is previous vertex to i
+        }
+        return (area/2)*10000000000;
+    }
 
-    calculateWidthHeight(){
-        this.state.width = this.getDistanceFromLatLonInM(this.state.pointPositions[0].x, this.state.pointPositions[0].y, this.state.pointPositions[1].x, this.state.pointPositions[1].y);
-        this.state.height = this.getDistanceFromLatLonInM(this.state.pointPositions[1].x, this.state.pointPositions[1].y, this.state.pointPositions[2].x, this.state.pointPositions[2].y)
+
+    calculateCircumference(){
+        for(let i = 1; i < this.state.cartesian3dPositions.length; i++) {
+            this.state.circumference = this.state.circumference + this.getDistanceFromLatLonInM(this.state.pointPositions[i-1].x, this.state.pointPositions[i-1].y, this.state.pointPositions[i].x, this.state.pointPositions[i].y)
+        }
+        this.state.circumference = this.state.circumference + this.getDistanceFromLatLonInM(this.state.pointPositions[0].x, this.state.pointPositions[0].y, this.state.pointPositions[this.state.pointPositions.length-1].x, this.state.pointPositions[this.state.pointPositions.length-1].y)
+    }
+
+    drawingIsFinished(){
+        this.setState({canDrawLine: true})
+        this.calculateCircumference()
+        for(let i = 0; i < this.state.pointPositions.length; i++){
+            this.state.drawedPositions.push(this.state.pointPositions[i].x, this.state.pointPositions[i].y, 0)
+        }
+        this.state.drawedPositions.push(this.state.pointPositions[0].x, this.state.pointPositions[0].y, 0)
+        this.state.area = this.polygonArea(this.state.pointPositionsX, this.state.pointPositionsY, this.state.pointPositions.length)
+        console.log(this.state.area)
+        animateScroll.scrollToBottom()
+    }
+
+    handleProceed(){
+        window.location = "#/feasibility";
+        window.location.reload();
     }
 
     render(){
@@ -248,8 +243,8 @@ export class OverlaysDemo extends Component{
             <div id="viewer" className="p-grid p-dir-col p-fluid" >
                 <div className="p-col card">
                     <h1>Find Your Address</h1>
-                    <p1>Enter your address from right upper toolbar after picking search button.</p1>
-                    <Button onClick={this.showInfo} label="Help" className="p-button-info" style={{width:'10em', marginLeft:"69em"}} />
+                    <p3>Enter your address from right upper toolbar after picking search button.</p3>
+                    <Button onClick={this.showInfo} label="Help" className="p-button-info p-button-rounded" style={{width:'10em', marginLeft:"88em"}} />
                 </div> 
 
                 <div className="p-grid p-fluid dashboard">
@@ -280,7 +275,14 @@ export class OverlaysDemo extends Component{
                 <Growl ref={(el) => this.growl = el} style={{marginTop: '75px'}} />
 
                 <div className="p-col p-fluid p-card">
+                    
+
+                    <div className="p-col p-card">
+                    <Button style={{width:'20em', marginLeft:"78em"}} label="Finish Drawing" size="10em" icon="pi pi-arrow-down" onClick={() => this.drawingIsFinished()} className="p-button p-button-warning p-button-rounded" />
+                    </div>
+
                     <Viewer onClick={(evt) => this.action('Left Click', evt)} ref={e => {this.viewer = e ? e.cesiumElement : null;}}> 
+                        
                         {this.state.pointPositions.map((item, index) => {
                             console.log(typeof(item.x))
                             return(
@@ -292,13 +294,13 @@ export class OverlaysDemo extends Component{
                                 />
                             )
                         })}
-
-                        {this.state.canDrawLine === true &&    
-                            <Entity
+                        {console.log(this.state.canDrawLine)}
+                        {this.state.canDrawLine &&   
+                            (<Entity
                                 name="PolylineGraphics"
                                 description="PolylineGraphics!!">
                                 <PolylineGraphics
-                                positions={Cartesian3.fromDegreesArrayHeights([this.state.pointPositions[0].x, this.state.pointPositions[0].y, 0, this.state.pointPositions[1].x, this.state.pointPositions[1].y, 0, this.state.pointPositions[2].x, this.state.pointPositions[2].y, 0, this.state.pointPositions[3].x, this.state.pointPositions[3].y, 0, this.state.pointPositions[0].x, this.state.pointPositions[0].y, 0])}
+                                positions={Cartesian3.fromDegreesArrayHeights(this.state.drawedPositions)}
                                 width={3}
                                 material={
                                     new PolylineDashMaterialProperty({
@@ -307,33 +309,21 @@ export class OverlaysDemo extends Component{
                                 }
                                 />
                             </Entity>
+                            )
                         }
-                        
-                    </Viewer>
-                    {/* <Button label="TopRight" icon="pi pi-arrow-down" onClick={() => this.onClick()} className="p-button-warning" /> */}
-                </div>
+                    </Viewer>                    
 
-                <div className="p-col card">
-                        <Card title="Your Roof Results" subTitle="Details">
+                    <div className="p-col card grid">
+                        <Card title="Your Roof Results"  subTitle="Details">
                             <div className="p-grid p-fluid dashboard">
                                 <div className="p-col-12 p-md-6 p-xl-3">
                                     <div className="highlight-box">
-                                            <div className="initials" style={{backgroundColor:'#007be5',color:'#00448f'}}><span>RH</span></div>
+                                            <div className="initials" style={{backgroundColor:'#007be5',color:'#00448f'}}><span>RC</span></div>
                                             <div className="highlight-details ">
                                                 <i className="pi pi-search"/>
-                                                <span>Roof Height</span>
-                                                <span className="count">{(this.state.height).toFixed(3)}</span>
+                                                <span>Circumference</span>
+                                                <span className="count">{(this.state.circumference).toFixed(3)}</span>
                                             </div>
-                                    </div>
-                                </div>
-                                <div className="p-col-12 p-md-6 p-xl-3">
-                                    <div className="highlight-box">
-                                        <div className="initials" style={{backgroundColor:'#ef6262',color:'#a83d3b'}}><span>RW</span></div>
-                                        <div className="highlight-details ">
-                                            <i className="pi pi-search"/>
-                                            <span>Roof Width</span>
-                                            <span className="count">{(this.state.width).toFixed(3)}</span>
-                                        </div>
                                     </div>
                                 </div>
                                 <div className="p-col-12 p-md-6 p-xl-3">
@@ -342,11 +332,10 @@ export class OverlaysDemo extends Component{
                                         <div className="highlight-details ">
                                             <i className="pi pi-search"/>
                                             <span>Roof Area</span>
-                                            <span className="count">{(this.state.width * this.state.height).toFixed(3)}</span>
+                                            <span className="count">{(this.state.area).toFixed(3)}</span>
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className="p-col-12 p-md-6 p-xl-3">
                                     <div className="highlight-box">
                                         <div className="initials" style={{backgroundColor:'#f9c851',color:'#b58c2b'}}><span>RA</span></div>
@@ -357,13 +346,35 @@ export class OverlaysDemo extends Component{
                                         </div>
                                     </div>  
                                 </div>
+                                <div className="p-col-12 p-md-6 p-xl-3">
+                                    <div className="highlight-box">
+                                        <div className="initials" style={{backgroundColor:'#ef6262',color:'#a83d3b'}}><span>MA</span></div>
+                                        <div className="highlight-details ">
+                                            <i className="pi pi-search"/>
+                                            <span>Another Metric</span>
+                                            <span className="count">{(this.state.area).toFixed(3)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                         </Card>
-                        {this.state.canDrawLine === true &&
-                            <Button onClick={this.printDocument}label="capture"></Button>
-                        }
+                        
+                        <div className="p-col p-fluid p-card">
+                            <Steps model={items}>
+                            </Steps>
+                            <Button onClick={() => this.handleProceed()} label="Proceed" icon="pi pi-arrow-right" style={{marginLeft:"85em", width:"10em"}} className="p-button-raised p-button-rounded p-button-warning"/>
+
+                        </div>
+
+                    </div>
                 </div>
+
             </div>
         )
     }    
 }
+
+// export default GoogleApiWrapper({
+//     apiKey: 'AIzaSyDx2GbulfV8GnINcVkKTI0cvtt-ZgPKlbE'
+// })(OverlaysDemo);
