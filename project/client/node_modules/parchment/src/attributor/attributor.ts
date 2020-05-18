@@ -1,6 +1,5 @@
 import * as Registry from '../registry';
 
-
 export interface AttributorOptions {
   scope?: Registry.Scope;
   whitelist?: string[];
@@ -10,10 +9,10 @@ export default class Attributor {
   attrName: string;
   keyName: string;
   scope: Registry.Scope;
-  whitelist: string[];
+  whitelist: string[] | undefined;
 
   static keys(node: HTMLElement): string[] {
-    return [].map.call(node.attributes, function(item) {
+    return [].map.call(node.attributes, function(item: Attr) {
       return item.name;
     });
   }
@@ -37,12 +36,15 @@ export default class Attributor {
     return true;
   }
 
-  canAdd(node: HTMLElement, value: string): boolean {
+  canAdd(node: HTMLElement, value: any): boolean {
     let match = Registry.query(node, Registry.Scope.BLOT & (this.scope | Registry.Scope.TYPE));
-    if (match != null && (this.whitelist == null || this.whitelist.indexOf(value) > -1)) {
-      return true;
+    if (match == null) return false;
+    if (this.whitelist == null) return true;
+    if (typeof value === 'string') {
+      return this.whitelist.indexOf(value.replace(/["']/g, '')) > -1;
+    } else {
+      return this.whitelist.indexOf(value) > -1;
     }
-    return false;
   }
 
   remove(node: HTMLElement): void {
@@ -51,6 +53,9 @@ export default class Attributor {
 
   value(node: HTMLElement): string {
     let value = node.getAttribute(this.keyName);
-    return this.canAdd(node, value) ? value : '';
+    if (this.canAdd(node, value) && value) {
+      return value;
+    }
+    return '';
   }
 }
