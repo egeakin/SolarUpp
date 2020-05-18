@@ -16,8 +16,8 @@ import { ChartsDemo } from "./components/ChartsDemo";
 import { MiscDemo } from "./components/MiscDemo";
 import { EmptyPage } from "./components/EmptyPage";
 import { Documentation } from "./components/Documentation";
-import {Feasibility} from './components/Feasibility';
-import { SolarPlans } from './components/SolarPlans';
+import { Feasibility } from "./components/Feasibility";
+import { SolarPlans } from "./components/SolarPlans";
 import "primereact/resources/themes/nova-light/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
@@ -201,8 +201,16 @@ class App extends Component {
             icon: "pi pi-fw pi-circle-off",
             to: "/empty",
           },
-          {label: 'Feasibility Study', icon: 'pi pi-fw pi-circle-off', to: '/feasibility'},
-          {label: 'See Solar Plans', icon: 'pi pi-fw pi-circle-off', to: '/solarPlans'}
+          {
+            label: "Feasibility Study",
+            icon: "pi pi-fw pi-circle-off",
+            to: "/feasibility",
+          },
+          {
+            label: "See Solar Plans",
+            icon: "pi pi-fw pi-circle-off",
+            to: "/solarPlans",
+          },
         ],
       },
       {
