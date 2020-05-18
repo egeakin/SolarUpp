@@ -7,8 +7,36 @@ firebase.initializeApp(config);
 const {
   validateSignupData,
   validateLoginData,
-  reduceUserDetails
+  reduceUserDetails,
+  validateNewPassword
 } = require("../util/validators");
+
+exports.changePassword = (request, response) => {
+  if (request.method !== 'POST') {
+    return response.status(400).json({ error: 'Method not allowed'});
+  }
+  
+  var user = firebase.auth().currentUser;
+  
+  const toValid = {
+      newPassword : request.body.newPassword,
+      newPasswordConfirm : request.body.newPasswordConfirm
+  };
+
+  const { valid, errors } = validateNewPassword(toValid);
+
+  if(!valid) return response.status(400).json(errors);
+
+  user
+    .updatePassword(toValid.newPassword)
+    .then(function() {
+      return response.json({ message: "Password changed successfully" });
+    })
+    .catch(function(error) {
+      console.error(err);
+      return response.status(500).json({ error: err.code });
+    });
+};
 
 // Sig users up
 exports.signup = (request, response) => {

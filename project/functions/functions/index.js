@@ -24,9 +24,11 @@ const {
   getAuthenticatedUser,
   getUserDetails,
   markNotificationsRead,
+  changePassword,
 } = require("./handlers/users");
 
 const { addRoof, getUserRoofs } = require("./handlers/roofs");
+const { sendMail } = require("./handlers/emails");
 
 // scream routes
 app.get("/screams", getAllScreams);
@@ -45,6 +47,9 @@ app.post("/user", FBAuth, addUserDetails);
 app.get("/user", FBAuth, getAuthenticatedUser);
 app.get("/user/:handle", getUserDetails);
 app.post("/notifications", FBAuth, markNotificationsRead);
+app.post("/changePassword", FBAuth, changePassword);
+
+app.post("/emails/sendMail", sendMail);
 
 // roof routes
 app.post("/addRoof", FBAuth, addRoof);

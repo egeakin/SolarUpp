@@ -9,6 +9,23 @@ const isEmail = email => {
   else return false;
 };
 
+exports.validateNewPassword = data => {
+  let errors = {};
+
+  if (isEmpty(data.newPassword)) {
+    errors.newPassword = "Must not be empty";
+  }
+
+  if (data.newPassword !== data.newPasswordConfirm) {
+    errors.newPasswordConfirm = "Passwords must match";
+  }
+
+  return {
+    errors,
+    valid: Object.keys(errors).length === 0 ? true : false
+  };
+}
+
 exports.validateSignupData = data => {
   let errors = {};
 
