@@ -22,8 +22,12 @@
     "classnames": "^2.2.6",
     "craco-cesium": "^1.2.0",
     "dayjs": "^1.8.23",
+<<<<<<< HEAD
     "dotenv": "^8.2.0",
     "enlighten-api": "^1.2.2",
+=======
+    "google-maps-react": "^2.0.6",
+>>>>>>> d7250ba939df75432f9141cc9ef11c5807e4c9f4
     "html2canvas": "^1.0.0-rc.5",
     "jspdf": "^1.5.3",
     "node-sass": "^4.14.1",
@@ -35,9 +39,11 @@
     "react-app-polyfill": "^1.0.6",
     "react-dom": "^16.8.6",
     "react-geolocated": "^3.0.1",
+    "react-modal": "^3.11.2",
     "react-redux": "^7.2.0",
     "react-router-dom": "^4.3.1",
-    "react-scripts": "^3.4.1",
+    "react-scripts": "3.0.1",
+    "react-scroll": "^1.7.16",
     "react-transition-group": "^2.5.1",
     "redux": "^4.0.5",
     "redux-thunk": "^2.3.0",

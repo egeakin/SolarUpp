@@ -10,3 +10,4 @@ export const LOADING_UI = "LOADING_UI";
 export const CLEAR_ERRORS = "CLEAR_ERRORS";
 
 // Data reducer typee
+export const ADD_ROOF = "ADD_ROOF";

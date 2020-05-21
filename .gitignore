@@ -1,3 +1,5 @@
+project/client/node_modules
+project/functions/functions/node_modules
 node_modules
 .DS_STORE
 project/.DS_STORE
