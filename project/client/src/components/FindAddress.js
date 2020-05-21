@@ -52,7 +52,17 @@ import { Map, Polygon, GoogleApiWrapper, GoogleAPI } from "google-maps-react";
 import { animateScroll } from "react-scroll";
 import { Steps } from "primereact/steps";
 import { Link } from "react-router-dom";
+import { Panel } from "primereact/panel"
+import { Dropdown } from "primereact/dropdown"
+import { Checkbox } from "primereact/checkbox"
+import { RadioButton } from "primereact/radiobutton"
+import { Tree } from "primereact/tree"
+import { SelectButton } from "primereact/selectbutton"
+import { SplitButton } from "primereact/splitbutton"
+import {Toolbar} from 'primereact/toolbar';
 import PropTypes from "prop-types";
+import html2canvas from 'html2canvas';
+
 // redux
 import { connect } from "react-redux";
 import axios from "axios";
@@ -161,6 +171,15 @@ export class FindAddress extends Component {
       width: 0.0,
       area: 0.0,
       circumference: 0.0,
+      roodImage: null,
+      radioValue: null,
+      value: null,   
+      selectedType: null,
+            types: [
+                {label: 'Suburban Estate', value: 'Suburban Estate'},
+                {label: 'Apartment', value: 'Apartment'},
+                {label: 'Industrial Estate', value: 'Industrial Estate'}
+            ],
     };
     this.showInfo = this.showInfo.bind(this);
     this.addRoof = this.addRoof.bind(this);
@@ -176,27 +195,27 @@ export class FindAddress extends Component {
   }
 
   action(label, evt) {
-    let coords = this.getLocationFromScreenXY(evt.position.x, evt.position.y);
-    let lon = this.radiansToDegrees(coords.longitude);
-    let lat = this.radiansToDegrees(coords.latitude);
+      let coords = this.getLocationFromScreenXY(evt.position.x, evt.position.y);
+      let lon = this.radiansToDegrees(coords.longitude);
+      let lat = this.radiansToDegrees(coords.latitude);
 
-    this.state.cartesian3dPositionsX.push(lon);
-    this.state.cartesian3dPositionsY.push(lat);
+      this.state.cartesian3dPositionsX.push(lon);
+      this.state.cartesian3dPositionsY.push(lat);
 
-    let newCoord = new Cartesian3(lon, lat, 0);
-    this.state.cartesian3dPositions.push(newCoord);
-    console.log(this.state.cartesian3dPositions);
+      let newCoord = new Cartesian3(lon, lat, 0);
+      this.state.cartesian3dPositions.push(newCoord);
+      console.log(this.state.cartesian3dPositions);
 
-    this.state.pointPositions.push({
-      x: Number(lon),
-      y: Number(lat),
-    });
-    console.log(this.state.pointPositions);
+      this.state.pointPositions.push({
+        x: Number(lon),
+        y: Number(lat),
+      });
+      console.log(this.state.pointPositions);
 
-    this.state.pointPositionsX.push(Number(lon));
-    this.state.pointPositionsY.push(Number(lat));
+      this.state.pointPositionsX.push(Number(lon));
+      this.state.pointPositionsY.push(Number(lat));
 
-    console.log(this.state.pointPositions);
+      console.log(this.state.pointPositions);
   }
 
   getLocation() {
@@ -314,27 +333,47 @@ export class FindAddress extends Component {
   }
 
   drawingIsFinished() {
-    this.setState({ canDrawLine: true });
-    this.calculateCircumference();
-    for (let i = 0; i < this.state.pointPositions.length; i++) {
+    if(this.state.pointPositions.length > 3){
+      this.setState({ canDrawLine: true });
+      this.calculateCircumference();
+      for (let i = 0; i < this.state.pointPositions.length; i++) {
+        this.state.drawedPositions.push(
+          this.state.pointPositions[i].x,
+          this.state.pointPositions[i].y,
+          0
+        );
+      }
       this.state.drawedPositions.push(
-        this.state.pointPositions[i].x,
-        this.state.pointPositions[i].y,
+        this.state.pointPositions[0].x,
+        this.state.pointPositions[0].y,
         0
       );
+      this.state.area = this.polygonArea(
+        this.state.pointPositionsX,
+        this.state.pointPositionsY,
+        this.state.pointPositions.length
+      );
+      console.log(this.state.area);
+      
+      
+      this.viewer.render()
+      this.state.roofImage = this.viewer.canvas.toDataURL()
+      console.log(this.state.roofImage)
+      animateScroll.scrollToBottom();
     }
-    this.state.drawedPositions.push(
-      this.state.pointPositions[0].x,
-      this.state.pointPositions[0].y,
-      0
-    );
-    this.state.area = this.polygonArea(
-      this.state.pointPositionsX,
-      this.state.pointPositionsY,
-      this.state.pointPositions.length
-    );
-    console.log(this.state.area);
-    animateScroll.scrollToBottom();
+  }
+
+  handleSaveButton() {
+    animateScroll.scrollMore(480);
+  }
+
+  deletePlan() {
+    this.state.pointPositions = []
+    this.state.pointPositionsX = []
+    this.state.pointPositionsY = []
+    this.state.cartesian3dPositions = []
+    this.state.cartesian3dPositionsX = []
+    this.state.cartesian3dPositionsY = []
   }
 
   addRoof() {
@@ -355,40 +394,45 @@ export class FindAddress extends Component {
         window.location.reload();
       })
       .catch((err) => console.log(err));
+  }
 
-    // window.location = "#/feasibility";
-    // window.location.reload();
+  printDocument() {
+    this.viewer.render()
+    this.state.roofImage = this.viewer.scene.pocanvas.toDataURL()
+    console.log(this.state.roofImage)
   }
 
   render() {
     return (
-      <div id="viewer" className="p-grid p-dir-col p-fluid">
-        <div className="p-col card">
+      <div className="p-grid p-dir-col p-fluid">
+        <div className="card card-w-title">
           <h1>Find Your Address</h1>
           <p3>
             Enter your address from right upper toolbar after picking search
             button.
           </p3>
-          <Button
-            onClick={this.showInfo}
-            label="Help"
-            className="p-button-info p-button-rounded"
-            style={{ width: "10em", marginLeft: "88em" }}
-          />
+          {/* <div className="p-grid p-justify-end">
+            <Button
+              onClick={this.showInfo}
+              label="Help"
+              className="p-button-info p-button-rounded p-justify-end"
+              style={{ width: "10em", marginLeft: "88em" }}
+            />
+          </div> */}
         </div>
 
         <div className="p-grid p-fluid dashboard">
           <div className="p-col-12 p-lg-4">
             <div className="card summary">
               <span className="title">Your Latitude</span>
-              <span className="detail">In Radian Degrees</span>
+              <span className="detail">In Degrees</span>
               <span className="count visitors">{this.state.latitude}</span>
             </div>
           </div>
           <div className="p-col-12 p-lg-4">
             <div className="card summary">
               <span className="title">Your Longitude</span>
-              <span className="detail">In Radian Degrees</span>
+              <span className="detail">In Degrees</span>
               <span className="count purchases">{this.state.longitude}</span>
             </div>
           </div>
@@ -401,22 +445,68 @@ export class FindAddress extends Component {
           </div>
         </div>
 
+        <div className="grid p-dir-col p-fluid">
+          <div className="card card-w-title">
+              <h1>Building Info</h1>
+              <br></br>
+
+                <div className="p-grid p-justify-end">
+                    <div className="p-col-12 p-md-2">
+                        {/* <label htmlFor="input">Builging Name</label> */}
+                        <Button label="Building Name:"></Button>
+                    </div>
+                    <div className="p-col-12 p-md-4">
+                        <InputText value={this.state.value} onChange={(e) => this.setState({buildingName: e.target.value})} />
+                    </div>
+                    <div className="p-col-12 p-md-2">
+                        <Button  label="Building Type:"></Button>
+                    </div>
+                    <div className="p-col-12 p-md-4">
+                        <SelectButton value={this.state.selectedType} options={this.state.types} onChange={event => this.setState({selectedType: event.value})} />
+                    </div>
+                    <div className="p-justify-end">
+                        <br></br>
+                        <Button style={{ width: "6em",marginRight:'.25em'}} onClick={() => this.handleSaveButton()} label="Save" icon="pi pi-check"/>
+                    </div>
+                </div>
+          </div>
+        </div>
+
         <Messages ref={(el) => (this.messages = el)} />
         <Growl ref={(el) => (this.growl = el)} style={{ marginTop: "75px" }} />
 
-        <div className="p-col p-fluid p-card">
-          <div className="p-col p-card">
-            <Button
-              style={{ width: "20em", marginLeft: "78em" }}
-              label="Finish Drawing"
+        <div className="p-col p-fluid card card-w-title">
+
+          <h1>Draw Your Roof</h1>
+
+          <div className="p-col p-grid p-justify-end">
+          <Button
+              style={{ width: "9em",marginRight:'.25em'}}
+              label="Help"
               size="10em"
-              icon="pi pi-arrow-down"
+              icon="pi pi-search"
+              onClick={() => this.showInfo()}
+              className="p-button p-button-info"
+            />
+            <Button
+              style={{ width: "9em",marginRight:'.25em'}}
+              label="Finish Plan"
+              size="10em"
+              icon="pi pi-check"
               onClick={() => this.drawingIsFinished()}
-              className="p-button p-button-warning p-button-rounded"
+              className="p-button p-button-success"
+            />
+            <Button
+              style={{ width: "9em"}}
+              label="Delete Plan"
+              size="10em"
+              icon="pi pi-times"
+              onClick={() => this.deletePlan()}
+              className="p-button p-button-danger"
             />
           </div>
 
-          <Viewer
+          <Viewer       
             onClick={(evt) => this.action("Left Click", evt)}
             ref={(e) => {
               this.viewer = e ? e.cesiumElement : null;
@@ -468,7 +558,7 @@ export class FindAddress extends Component {
                       <i className="pi pi-search" />
                       <span>Circumference</span>
                       <span className="count">
-                        {this.state.circumference.toFixed(3)}
+                        {this.state.circumference.toFixed(1)}
                       </span>
                     </div>
                   </div>
@@ -485,7 +575,7 @@ export class FindAddress extends Component {
                       <i className="pi pi-search" />
                       <span>Roof Area</span>
                       <span className="count">
-                        {this.state.area.toFixed(3)}
+                        {this.state.area.toFixed(1)}
                       </span>
                     </div>
                   </div>
@@ -496,12 +586,14 @@ export class FindAddress extends Component {
                       className="initials"
                       style={{ backgroundColor: "#f9c851", color: "#b58c2b" }}
                     >
-                      <span>RA</span>
+                      <span>RL</span>
                     </div>
                     <div className="highlight-details ">
                       <i className="pi pi-search" />
-                      <span>Roof Angle</span>
-                      <span className="count">30</span>
+                      <span>Roof Latitude</span>
+                        {this.state.canDrawLine &&
+                          <span className="count">{this.state.pointPositions[0].x.toFixed(1)}</span>
+                        }
                     </div>
                   </div>
                 </div>
@@ -511,13 +603,15 @@ export class FindAddress extends Component {
                       className="initials"
                       style={{ backgroundColor: "#ef6262", color: "#a83d3b" }}
                     >
-                      <span>MA</span>
+                      <span>RL</span>
                     </div>
                     <div className="highlight-details ">
                       <i className="pi pi-search" />
-                      <span>Another Metric</span>
-                      <span className="count">
-                        {this.state.area.toFixed(3)}
+                      <span>Roof Longitude</span>
+                      <span>
+                        {this.state.canDrawLine &&
+                          <span className="count">{this.state.pointPositions[0].y.toFixed(1)}</span>
+                        }
                       </span>
                     </div>
                   </div>
@@ -525,7 +619,7 @@ export class FindAddress extends Component {
               </div>
             </Card>
 
-            <div className="p-col p-fluid p-card">
+            <div className="p-col p-fluid p-card p-justify-end">
               <Steps model={items}></Steps>
               <Button
                 onClick={this.addRoof}
