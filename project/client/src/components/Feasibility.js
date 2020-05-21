@@ -133,6 +133,14 @@ export class Feasibility extends Component {
 
 
     componentDidMount() {
+        let data;
+    axios
+      .get("/getRoof")
+      .then((res) => {
+        console.log(res);
+        data = res.data;
+      })
+      .catch((err) => console.log(err));
         //this.setState({width: , height: , freeSpace: '450m^2', occupiedSpace: '150m^2', buildingFacade: 'South', latitude: 45, longitude: 8, buildingType: 'House'});
     }
 

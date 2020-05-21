@@ -46,12 +46,13 @@ export class MiscDemo extends Component {
     this.state = {
       value: 0,
       degree: "C",
-      notification: "",
-      temperature: "",
-      description: "-",
+      notification: ["", "", "", "", ""],
+      temperature: ["", "", "", "", ""],
+      description: ["", "", "", "", ""],
       iconId: "assets/layout/WeatherIcons/unknown.png",
-      city: "-",
-      country: "-",
+      city: ["", "", "", "", ""],
+      country: ["", "", "", "", ""],
+      clouds: ["", "", "", "", ""],
       latitude: null,
       longitude: null,
       options: {
@@ -93,11 +94,11 @@ export class MiscDemo extends Component {
       longitude: position.coords.longitude,
       notification: "",
     });
-    let api = `http://api.openweathermap.org/data/2.5/weather?lat=${this.state.latitude}&lon=${this.state.longitude}&appid=${key}`;
+    let api = `http://api.openweathermap.org/data/2.5/forecast?lat=${this.state.latitude}&lon=${this.state.longitude}&appid=${key}`;
     console.log(this.state.latitude);
     console.log(this.state.longitude);
     console.log(
-      `http://api.openweathermap.org/data/2.5/weather?lat=${this.state.latitude}&lon=${this.state.longitude}&appid=${key}`
+      `http://api.openweathermap.org/data/2.5/forecast?lat=${this.state.latitude}&lon=${this.state.longitude}&appid=${key}`
     );
     fetch(api)
       .then((response) => {
@@ -107,11 +108,36 @@ export class MiscDemo extends Component {
       })
       .then((data) => {
         this.setState({
-          temperature: Math.floor(data.main.temp - KELVIN),
-          description: data.weather[0].description,
-          iconId: `assets/layout/WeatherIcons/${data.weather[0].icon}.png`,
-          city: data.name,
-          country: data.sys.country,
+          temperature: [
+            Math.floor(data.list[0].main.temp - KELVIN),
+            Math.floor(data.list[8].main.temp - KELVIN),
+            Math.floor(data.list[16].main.temp - KELVIN),
+            Math.floor(data.list[24].main.temp - KELVIN),
+            Math.floor(data.list[32].main.temp - KELVIN),
+          ],
+          description: [
+            data.list[0].weather[0].description,
+            data.list[8].weather[0].description,
+            data.list[16].weather[0].description,
+            data.list[24].weather[0].description,
+            data.list[32].weather[0].description,
+          ],
+          iconId: [
+            `assets/layout/WeatherIcons/${data.list[0].weather[0].icon}.png`,
+            `assets/layout/WeatherIcons/${data.list[8].weather[0].icon}.png`,
+            `assets/layout/WeatherIcons/${data.list[16].weather[0].icon}.png`,
+            `assets/layout/WeatherIcons/${data.list[24].weather[0].icon}.png`,
+            `assets/layout/WeatherIcons/${data.list[32].weather[0].icon}.png`,
+          ],
+          clouds: [
+            data.list[0].clouds.all,
+            data.list[8].clouds.all,
+            data.list[16].clouds.all,
+            data.list[24].clouds.all,
+            data.list[32].clouds.all,
+          ],
+          city: data.city.name,
+          country: data.city.country,
         });
       });
   }
@@ -191,28 +217,149 @@ export class MiscDemo extends Component {
           </div>
         </div>
 
-        <div className="container">
-          <div className="app-title">
-            <p>Weather</p>
+        <div className="p-grid p-nogutter">
+          <div className="containerr">
+            <div className="app-title">
+              <p>Today</p>
+            </div>
+            <div className="notification p" align="center">
+              {this.state.notification}
+            </div>
+            <div className="whether-container">
+              <div className="whether-icon" align="center">
+                <img src={this.state.iconId[0]} alt=""></img>
+              </div>
+              <div align="center">
+                {this.state.temperature[0]}°<span>{this.state.degree}</span>
+              </div>
+              <div className="temperature-value" />
+              <div align="center">
+                Total clouds <span>{this.state.clouds[0]}</span>
+              </div>
+              <div className="temperature-description">
+                <p>{this.state.description[0]}</p>
+              </div>
+              <div className="location">
+                <p>
+                  {this.state.city}, {this.state.country}{" "}
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="notification p" align="center">
-            {this.state.notification}
+
+          <div className="containerr">
+            <div className="app-title">
+              <p>Tomorrow</p>
+            </div>
+            <div className="notification p" align="center">
+              {this.state.notification}
+            </div>
+            <div className="whether-container">
+              <div className="whether-icon" align="center">
+                <img src={this.state.iconId[1]} alt=""></img>
+              </div>
+              <div align="center">
+                {this.state.temperature[1]}°<span>{this.state.degree}</span>
+              </div>
+              <div className="temperature-value" />
+              <div align="center">
+                Total clouds <span>{this.state.clouds[1]}</span>
+              </div>
+              <div className="temperature-description">
+                <p>{this.state.description[1]}</p>
+              </div>
+              <div className="location">
+                <p>
+                  {this.state.city}, {this.state.country}{" "}
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="whether-container">
-            <div className="whether-icon" align="center">
-              <img src={this.state.iconId} alt=""></img>
+
+          <div className="containerr">
+            <div className="app-title">
+              <p>Two days later</p>
             </div>
-            <div className="temperature-value" align="center">
-              {" "}
-              {this.state.temperature}°<span>{this.state.degree}</span>
+            <div className="notification p" align="center">
+              {this.state.notification}
             </div>
-            <div className="temperature-description">
-              <p>{this.state.description}</p>
+            <div className="whether-container">
+              <div className="whether-icon" align="center">
+                <img src={this.state.iconId[2]} alt=""></img>
+              </div>
+              <div align="center">
+                {this.state.temperature[2]}°<span>{this.state.degree}</span>
+              </div>
+              <div className="temperature-value" />
+              <div align="center">
+                Total clouds <span>{this.state.clouds[2]}</span>
+              </div>
+              <div className="temperature-description">
+                <p>{this.state.description[2]}</p>
+              </div>
+              <div className="location">
+                <p>
+                  {this.state.city}, {this.state.country}{" "}
+                </p>
+              </div>
             </div>
-            <div className="location">
-              <p>
-                {this.state.city}, {this.state.country}{" "}
-              </p>
+          </div>
+
+          <div className="containerr">
+            <div className="app-title">
+              <p>Three days later</p>
+            </div>
+            <div className="notification p" align="center">
+              {this.state.notification}
+            </div>
+            <div className="whether-container">
+              <div className="whether-icon" align="center">
+                <img src={this.state.iconId[3]} alt=""></img>
+              </div>
+              <div align="center">
+                {this.state.temperature[3]}°<span>{this.state.degree}</span>
+              </div>
+              <div className="temperature-value" />
+              <div align="center">
+                Total clouds <span>{this.state.clouds[3]}</span>
+              </div>
+              <div className="temperature-description">
+                <p>{this.state.description[3]}</p>
+              </div>
+              <div className="location">
+                <p>
+                  {this.state.city}, {this.state.country}{" "}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="containerr">
+            <div className="app-title" align="center">
+              <p>Four Days Later</p>
+            </div>
+            <div className="notification p" align="center">
+              {this.state.notification}
+            </div>
+            <div className="whether-container">
+              <div className="whether-icon" align="center">
+                <img src={this.state.iconId[4]} alt=""></img>
+              </div>
+              <div align="center">
+                {this.state.temperature[4]}°<span>{this.state.degree}</span>
+              </div>
+              <div className="temperature-value" />
+              <div align="center">
+                Total clouds <span>{this.state.clouds[4]}</span>
+              </div>
+              <div className="temperature-description">
+                <p>{this.state.description[4]}</p>
+              </div>
+              <div className="location">
+                <p>
+                  {this.state.city}, {this.state.country}{" "}
+                </p>
+              </div>
             </div>
           </div>
         </div>
