@@ -5,3 +5,4 @@ node_modules
 project/.DS_STORE
 project/client/.DS_STORE
 client/.DS_STORE
+node_modules

@@ -28,6 +28,14 @@ const {
 } = require("./handlers/users");
 
 const { addRoof, getUserRoofs } = require("./handlers/roofs");
+
+const { 
+  addSystem,
+  getSystem,
+  deleteSystem,
+  getUserSystems,
+} = require("./handlers/maintenance");
+
 const { sendMail } = require("./handlers/emails");
 const { getAllInverters } = require("./handlers/inverters");
 const { getAllSolarPanels } = require("./handlers/panels");
@@ -51,7 +59,14 @@ app.get("/user/:handle", getUserDetails);
 app.post("/notifications", FBAuth, markNotificationsRead);
 app.post("/changePassword", FBAuth, changePassword);
 
+// emails route
 app.post("/emails/sendMail", sendMail);
+
+// maintenance route
+app.post("/addSystem", FBAuth, addSystem);
+app.get("/existingSystems/:existingSystemsId", FBAuth, getSystem);
+app.delete("/existingSystems/:existingSystemsId", FBAuth, deleteSystem);
+app.get("/existingSystems", FBAuth, getUserSystems);
 
 // roof routes
 app.post("/addRoof", FBAuth, addRoof);
