@@ -410,7 +410,7 @@ export class Feasibility extends Component {
             </div>
             <div className="p-col-12 p-lg-8">
               <div className="card card-w-title" style={{ height: "350px" }}>
-                <h1>Roof Angel</h1>
+                <h1>Roof Angle</h1>
                 <div className="p-vertical">
                   <div className="p-cl-12">
                     <h3>
