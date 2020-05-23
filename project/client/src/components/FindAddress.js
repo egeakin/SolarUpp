@@ -52,16 +52,16 @@ import { Map, Polygon, GoogleApiWrapper, GoogleAPI } from "google-maps-react";
 import { animateScroll } from "react-scroll";
 import { Steps } from "primereact/steps";
 import { Link } from "react-router-dom";
-import { Panel } from "primereact/panel"
-import { Dropdown } from "primereact/dropdown"
-import { Checkbox } from "primereact/checkbox"
-import { RadioButton } from "primereact/radiobutton"
-import { Tree } from "primereact/tree"
-import { SelectButton } from "primereact/selectbutton"
-import { SplitButton } from "primereact/splitbutton"
-import {Toolbar} from 'primereact/toolbar';
+import { Panel } from "primereact/panel";
+import { Dropdown } from "primereact/dropdown";
+import { Checkbox } from "primereact/checkbox";
+import { RadioButton } from "primereact/radiobutton";
+import { Tree } from "primereact/tree";
+import { SelectButton } from "primereact/selectbutton";
+import { SplitButton } from "primereact/splitbutton";
+import { Toolbar } from "primereact/toolbar";
 import PropTypes from "prop-types";
-import html2canvas from 'html2canvas';
+import html2canvas from "html2canvas";
 
 // redux
 import { connect } from "react-redux";
@@ -173,13 +173,13 @@ export class FindAddress extends Component {
       circumference: 0.0,
       roodImage: null,
       radioValue: null,
-      value: null,   
+      value: null,
       selectedType: null,
-            types: [
-                {label: 'Suburban Estate', value: 'Suburban Estate'},
-                {label: 'Apartment', value: 'Apartment'},
-                {label: 'Industrial Estate', value: 'Industrial Estate'}
-            ],
+      types: [
+        { label: "Suburban Estate", value: "Suburban Estate" },
+        { label: "Apartment", value: "Apartment" },
+        { label: "Industrial Estate", value: "Industrial Estate" },
+      ],
     };
     this.showInfo = this.showInfo.bind(this);
     this.addRoof = this.addRoof.bind(this);
@@ -195,27 +195,27 @@ export class FindAddress extends Component {
   }
 
   action(label, evt) {
-      let coords = this.getLocationFromScreenXY(evt.position.x, evt.position.y);
-      let lon = this.radiansToDegrees(coords.longitude);
-      let lat = this.radiansToDegrees(coords.latitude);
+    let coords = this.getLocationFromScreenXY(evt.position.x, evt.position.y);
+    let lon = this.radiansToDegrees(coords.longitude);
+    let lat = this.radiansToDegrees(coords.latitude);
 
-      this.state.cartesian3dPositionsX.push(lon);
-      this.state.cartesian3dPositionsY.push(lat);
+    this.state.cartesian3dPositionsX.push(lon);
+    this.state.cartesian3dPositionsY.push(lat);
 
-      let newCoord = new Cartesian3(lon, lat, 0);
-      this.state.cartesian3dPositions.push(newCoord);
-      console.log(this.state.cartesian3dPositions);
+    let newCoord = new Cartesian3(lon, lat, 0);
+    this.state.cartesian3dPositions.push(newCoord);
+    console.log(this.state.cartesian3dPositions);
 
-      this.state.pointPositions.push({
-        x: Number(lon),
-        y: Number(lat),
-      });
-      console.log(this.state.pointPositions);
+    this.state.pointPositions.push({
+      x: Number(lon),
+      y: Number(lat),
+    });
+    console.log(this.state.pointPositions);
 
-      this.state.pointPositionsX.push(Number(lon));
-      this.state.pointPositionsY.push(Number(lat));
+    this.state.pointPositionsX.push(Number(lon));
+    this.state.pointPositionsY.push(Number(lat));
 
-      console.log(this.state.pointPositions);
+    console.log(this.state.pointPositions);
   }
 
   getLocation() {
@@ -333,7 +333,7 @@ export class FindAddress extends Component {
   }
 
   drawingIsFinished() {
-    if(this.state.pointPositions.length > 3){
+    if (this.state.pointPositions.length > 3) {
       this.setState({ canDrawLine: true });
       this.calculateCircumference();
       for (let i = 0; i < this.state.pointPositions.length; i++) {
@@ -354,11 +354,10 @@ export class FindAddress extends Component {
         this.state.pointPositions.length
       );
       console.log(this.state.area);
-      
-      
-      this.viewer.render()
-      this.state.roofImage = this.viewer.canvas.toDataURL()
-      console.log(this.state.roofImage)
+
+      this.viewer.render();
+      this.state.roofImage = this.viewer.canvas.toDataURL("image/png", 0.1);
+      console.log(typeof this.state.roofImage);
       animateScroll.scrollToBottom();
     }
   }
@@ -368,38 +367,77 @@ export class FindAddress extends Component {
   }
 
   deletePlan() {
-    this.state.pointPositions = []
-    this.state.pointPositionsX = []
-    this.state.pointPositionsY = []
-    this.state.cartesian3dPositions = []
-    this.state.cartesian3dPositionsX = []
-    this.state.cartesian3dPositionsY = []
+    this.state.pointPositions = [];
+    this.state.pointPositionsX = [];
+    this.state.pointPositionsY = [];
+    this.state.cartesian3dPositions = [];
+    this.state.cartesian3dPositionsX = [];
+    this.state.cartesian3dPositionsY = [];
   }
 
   addRoof() {
-    console.log(this.state);
+    function dataURItoBlob(dataURI) {
+      // convert base64/URLEncoded data component to raw binary data held in a string
+      var byteString;
+      if (dataURI.split(",")[0].indexOf("base64") >= 0)
+        byteString = atob(dataURI.split(",")[1]);
+      else byteString = unescape(dataURI.split(",")[1]);
+
+      // separate out the mime component
+      var mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0];
+
+      // write the bytes of the string to a typed array
+      var ia = new Uint8Array(byteString.length);
+      for (var i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+
+      return new Blob([ia], { type: mimeString });
+    }
+
+    var blob = dataURItoBlob(this.state.roofImage);
+    console.log(blob);
+    blob = new File([blob], "image.png", {
+      type: "image/png",
+      lastModified: Date.now(),
+    });
+    //blob = blob.slice(0, blob.size, "image/png");
+    //console.log(blob);
+    var formData = new FormData(document.forms[0]);
+    formData.append("canvasImage", blob);
+
     let roofInfo = {
       roofCoordinates: this.state.pointPositions,
       roofCircumference: this.state.circumference,
       roofArea: this.state.area,
-      roofAngle: 30,
+      buildingName: this.state.buildingName,
+      buildingType: this.state.selectedType,
     };
 
     console.log(roofInfo);
+
     axios
       .post("/addRoof", roofInfo)
       .then((res) => {
-        console.log(res);
-        window.location = "#/feasibility";
-        window.location.reload();
+        const txt = new Text("roofId");
+        console.log(txt);
+        console.log(res.data.roofId);
+        formData.append("roofId", res.data.roofId);
+        axios
+          .post("uploadRoofImage", formData)
+          .then((res) => {
+            window.location = "#/feasibility";
+            window.location.reload();
+          })
+          .catch((err) => console.log(err));
       })
       .catch((err) => console.log(err));
   }
 
   printDocument() {
-    this.viewer.render()
-    this.state.roofImage = this.viewer.scene.pocanvas.toDataURL()
-    console.log(this.state.roofImage)
+    this.viewer.render();
+    this.state.roofImage = this.viewer.scene.pocanvas.toDataURL();
+    console.log(this.state.roofImage);
   }
 
   render() {
@@ -447,28 +485,44 @@ export class FindAddress extends Component {
 
         <div className="grid p-dir-col p-fluid">
           <div className="card card-w-title">
-              <h1>Building Info</h1>
-              <br></br>
+            <h1>Building Info</h1>
+            <br></br>
 
-                <div className="p-grid p-justify-end">
-                    <div className="p-col-12 p-md-2">
-                        {/* <label htmlFor="input">Builging Name</label> */}
-                        <Button label="Building Name:"></Button>
-                    </div>
-                    <div className="p-col-12 p-md-4">
-                        <InputText value={this.state.value} onChange={(e) => this.setState({buildingName: e.target.value})} />
-                    </div>
-                    <div className="p-col-12 p-md-2">
-                        <Button  label="Building Type:"></Button>
-                    </div>
-                    <div className="p-col-12 p-md-4">
-                        <SelectButton value={this.state.selectedType} options={this.state.types} onChange={event => this.setState({selectedType: event.value})} />
-                    </div>
-                    <div className="p-justify-end">
-                        <br></br>
-                        <Button style={{ width: "6em",marginRight:'.25em'}} onClick={() => this.handleSaveButton()} label="Save" icon="pi pi-check"/>
-                    </div>
-                </div>
+            <div className="p-grid p-justify-end">
+              <div className="p-col-12 p-md-2">
+                {/* <label htmlFor="input">Builging Name</label> */}
+                <Button label="Building Name:"></Button>
+              </div>
+              <div className="p-col-12 p-md-4">
+                <InputText
+                  value={this.state.value}
+                  onChange={(e) =>
+                    this.setState({ buildingName: e.target.value })
+                  }
+                />
+              </div>
+              <div className="p-col-12 p-md-2">
+                <Button label="Building Type:"></Button>
+              </div>
+              <div className="p-col-12 p-md-4">
+                <SelectButton
+                  value={this.state.selectedType}
+                  options={this.state.types}
+                  onChange={(event) =>
+                    this.setState({ selectedType: event.value })
+                  }
+                />
+              </div>
+              <div className="p-justify-end">
+                <br></br>
+                <Button
+                  style={{ width: "6em", marginRight: ".25em" }}
+                  onClick={() => this.handleSaveButton()}
+                  label="Save"
+                  icon="pi pi-check"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -476,12 +530,11 @@ export class FindAddress extends Component {
         <Growl ref={(el) => (this.growl = el)} style={{ marginTop: "75px" }} />
 
         <div className="p-col p-fluid card card-w-title">
-
           <h1>Draw Your Roof</h1>
 
           <div className="p-col p-grid p-justify-end">
-          <Button
-              style={{ width: "9em",marginRight:'.25em'}}
+            <Button
+              style={{ width: "9em", marginRight: ".25em" }}
               label="Help"
               size="10em"
               icon="pi pi-search"
@@ -489,7 +542,7 @@ export class FindAddress extends Component {
               className="p-button p-button-info"
             />
             <Button
-              style={{ width: "9em",marginRight:'.25em'}}
+              style={{ width: "9em", marginRight: ".25em" }}
               label="Finish Plan"
               size="10em"
               icon="pi pi-check"
@@ -497,7 +550,7 @@ export class FindAddress extends Component {
               className="p-button p-button-success"
             />
             <Button
-              style={{ width: "9em"}}
+              style={{ width: "9em" }}
               label="Delete Plan"
               size="10em"
               icon="pi pi-times"
@@ -506,7 +559,7 @@ export class FindAddress extends Component {
             />
           </div>
 
-          <Viewer       
+          <Viewer
             onClick={(evt) => this.action("Left Click", evt)}
             ref={(e) => {
               this.viewer = e ? e.cesiumElement : null;
@@ -591,9 +644,11 @@ export class FindAddress extends Component {
                     <div className="highlight-details ">
                       <i className="pi pi-search" />
                       <span>Roof Latitude</span>
-                        {this.state.canDrawLine &&
-                          <span className="count">{this.state.pointPositions[0].x.toFixed(1)}</span>
-                        }
+                      {this.state.canDrawLine && (
+                        <span className="count">
+                          {this.state.pointPositions[0].x.toFixed(1)}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -609,9 +664,11 @@ export class FindAddress extends Component {
                       <i className="pi pi-search" />
                       <span>Roof Longitude</span>
                       <span>
-                        {this.state.canDrawLine &&
-                          <span className="count">{this.state.pointPositions[0].y.toFixed(1)}</span>
-                        }
+                        {this.state.canDrawLine && (
+                          <span className="count">
+                            {this.state.pointPositions[0].y.toFixed(1)}
+                          </span>
+                        )}
                       </span>
                     </div>
                   </div>

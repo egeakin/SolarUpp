@@ -2,6 +2,11 @@ const functions = require("firebase-functions");
 
 const app = require("express")();
 
+const cors = require("cors");
+
+// Automatically allow cross-origin requests
+app.use(cors({ origin: true }));
+
 const { db } = require("./util/admin");
 
 const FBAuth = require("./util/fbAuth");
@@ -27,8 +32,12 @@ const {
   changePassword,
 } = require("./handlers/users");
 
-const { addRoof, getUserRoofs } = require("./handlers/roofs");
+const { addRoof, getUserRoofs, uploadRoofImage } = require("./handlers/roofs");
+
 const { sendMail } = require("./handlers/emails");
+
+const { getAllInverters } = require("./handlers/inverters");
+const { getAllSolarPanels } = require("./handlers/panels");
 
 // scream routes
 app.get("/screams", getAllScreams);
@@ -54,7 +63,13 @@ app.post("/emails/sendMail", sendMail);
 // roof routes
 app.post("/addRoof", FBAuth, addRoof);
 app.get("/getRoof", FBAuth, getUserRoofs);
+app.post("/uploadRoofImage", FBAuth, uploadRoofImage);
 
+//inverter routes
+app.get("/getInverters", FBAuth, getAllInverters);
+
+//panel routes
+app.get("/getPanels", FBAuth, getAllSolarPanels);
 //region('europe-west1)
 exports.api = functions.https.onRequest(app);
 

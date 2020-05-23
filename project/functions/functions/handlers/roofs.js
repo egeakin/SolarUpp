@@ -1,4 +1,5 @@
-const { db } = require("../util/admin");
+const { admin, db } = require("../util/admin");
+const config = require("../util/config");
 
 exports.addRoof = (request, response) => {
   console.log(request.body);
@@ -9,13 +10,14 @@ exports.addRoof = (request, response) => {
     createdAt: new Date().toISOString(),
     roofCircumference: request.body.roofCircumference,
     roofArea: request.body.roofArea,
-    roofAngle: request.body.roofAngle,
+    roofAngle: "",
     roofMaterial: "",
     freeSpace: 0,
     occupiedSpace: 0,
     buildingFacade: "",
-    buildingType: "",
-    buildingName: "",
+    buildingType: request.body.buildingType,
+    buildingName: request.body.buildingName,
+    roofImage: "",
   };
 
   db.collection("roofs")
@@ -26,7 +28,7 @@ exports.addRoof = (request, response) => {
       response.json(resRoof);
     })
     .catch((err) => {
-      response.status(500).json({ error: "something went wrong" });
+      response.status(500).json({ error: request.body });
       console.log(request);
       console.error(err);
     });
@@ -54,6 +56,7 @@ exports.getUserRoofs = (request, response) => {
             buildingFacade: doc.data().buildingFacade,
             buildingType: doc.data().buildingType,
             buildingName: doc.data().buildingName,
+            roofImage: doc.data().roofImage,
           });
         }
       });
@@ -63,4 +66,71 @@ exports.getUserRoofs = (request, response) => {
       console.error(err);
       response.status(500).json({ error: err.code });
     });
+};
+
+exports.uploadRoofImage = (request, response) => {
+  const BusBoy = require("busboy");
+  const path = require("path");
+  const os = require("os");
+  const fs = require("fs");
+
+  const busboy = new BusBoy({ headers: request.headers });
+
+  let imageFileName;
+  let imageToBeUploaded = {};
+
+  let id;
+
+  busboy.on("field", (fieldName, value) => {
+    if (fieldName === "roofId") {
+      id = value;
+    }
+  });
+
+  busboy.on("file", (fieldname, file, filename, encoding, mimetype) => {
+    if (mimetype !== "image/jpeg" && mimetype !== "image/png") {
+      return response.status(400).json({ error: "Wrong file type submitted" });
+    }
+
+    // image.png
+    const imageExtension = filename.split(".")[filename.split(".").length - 1];
+
+    //1000000000.png
+    imageFileName = `${Math.round(
+      Math.random() * 1000000000
+    )}.${imageExtension}`;
+
+    const filepath = path.join(os.tmpdir(), imageFileName);
+
+    imageToBeUploaded = { filepath, mimetype };
+    file.pipe(fs.createWriteStream(filepath));
+  });
+
+  busboy.on("finish", () => {
+    admin
+      .storage()
+      .bucket()
+      .upload(imageToBeUploaded.filepath, {
+        resumable: false,
+        metadata: {
+          metadata: {
+            contentType: imageToBeUploaded.mimetype,
+          },
+        },
+      })
+      .then(() => {
+        const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${imageFileName}?alt=media`;
+
+        return db.doc(`/roofs/` + id).update({ roofImage: imageUrl });
+      })
+      .then(() => {
+        return response.json({ messsage: "Image successfully uploaded" });
+      })
+      .catch((err) => {
+        console.error(err);
+        return response.status(500).json({ error: err.code });
+      });
+  });
+
+  busboy.end(request.rawBody);
 };

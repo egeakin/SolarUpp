@@ -10,6 +10,9 @@ import { Messages } from "primereact/messages";
 import { OverlayPanel } from "primereact/overlaypanel";
 import axios from "axios";
 import FeasbilityCard from "./FeasbilityCard.js";
+import { connect } from "react-redux";
+import cannyEdgeDetector from "canny-edge-detector";
+import Image from "image-js";
 
 export class Feasibility extends Component {
   constructor() {
@@ -29,6 +32,7 @@ export class Feasibility extends Component {
       roofAngle: null,
       roofMaterials: [],
       roofImage: null,
+      edgeDetectionImage: null,
       solarPlans: [
         {
           index: 1,
@@ -283,25 +287,36 @@ export class Feasibility extends Component {
   }
 
   componentDidMount() {
-    let data;
+    var data;
     axios
       .get("/getRoof")
       .then((res) => {
-        console.log(res);
         data = res.data;
+        this.setState({
+          width: 30,
+          height: 20,
+          freeSpace: "450m^2",
+          occupiedSpace: "150m^2",
+          buildingFacade: "South",
+          latitude: "Alp",
+          longitude: 8,
+          buildingType: "",
+          roofImage: data[0].roofImage,
+        });
+
+        Image.load(this.state.roofImage)
+          .then((img) => {
+            const grey = img.grey();
+            const edge = cannyEdgeDetector(grey).toDataURL();
+            this.setState({
+              edgeDetectionImage: edge,
+            });
+            console.log(222);
+          })
+          .catch((err) => console.log(err));
+        console.log(333);
       })
       .catch((err) => console.log(err));
-
-    this.setState({
-      width: 30,
-      height: 20,
-      freeSpace: "450m^2",
-      occupiedSpace: "150m^2",
-      buildingFacade: "South",
-      latitude: 45,
-      longitude: 8,
-      buildingType: "House",
-    });
   }
 
   render() {
@@ -461,10 +476,17 @@ export class Feasibility extends Component {
           <div className="card card-w-title" style={{ height: "500px" }}>
             <h1>Your Roof</h1>
             <div className="p-col-12 p-md-6">
+              <script>cscdsa</script>
               <img
-                src="assets/layout/images/roof1.png"
-                width="450"
-                height="400"
+                src={this.state.roofImage}
+                width="650"
+                height="320"
+                alt="roof1"
+              />
+              <img
+                src={this.state.edgeDetectionImage}
+                width="650"
+                height="320"
                 alt="roof1"
               />
             </div>
