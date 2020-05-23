@@ -2,10 +2,40 @@ import React, { Component } from 'react'
 import {Chart} from 'primereact/chart';
 import PropTypes from 'prop-types';
 
-
 export default class FeasbilityCard extends Component {
-    calculateSaving(annualProduction) {
-        return annualProduction* 0.58;
+    calculateSaving(freeSpace, monthlydata, averageConsumption) {
+        let peakPower = (freeSpace*17)/100;  //kaç kWh olduğunu gösterir
+        let systemCost = peakPower*9500; //1Kwh saat için kurulum ücreti ortalama her şey dahil 1500$
+        let balance = 0;
+        //first 15 year
+        let income15 = 0;
+        let i;
+        for(i = 0; i < 12; i++){
+            let diff = monthlydata[i] - averageConsumption;
+            if(diff > 0) {
+                income15 += diff * 0.31;
+                income15 += averageConsumption * 0.71;
+            }
+            else{
+                income15 += monthlydata[i] * 0.71;
+            }
+        }
+        balance += income15 * 15;
+        //last 10 year
+        let income10 = 0;
+        let j;
+        for(j = 0; j < 12; j++){
+            let diff = (monthlydata[j] * 0.85) - averageConsumption;
+            if(diff > 0) {
+                income10 += diff * 0.31;
+                income10 += averageConsumption * 0.71;
+            }
+            else{
+                income10 += monthlydata[j] * 0.71;
+            }
+        }
+        balance += income10 * 10;
+        return balance - systemCost;
     }
 
     calculateCarbonFootPrint(annualConsumption) {
@@ -22,13 +52,12 @@ export default class FeasbilityCard extends Component {
             monthlydata.push(info.outputs.monthly.fixed[i].E_m);
         }
 
+        var freeSpace = this.props.freeSpace;
         var annualProduction = info.outputs.totals.fixed.E_y;
         var annualConsumption = this.props.averageConsumption *12;
         var cutCarbonFoodPrint = this.calculateCarbonFootPrint(annualConsumption);
-        var saving25Year = this.calculateSaving(annualProduction.toFixed(2));
-        var freeSpace = this.props.freeSpace;
-
-
+        var saving25Year = this.calculateSaving( freeSpace, monthlydata, this.props.averageConsumption);
+        
         var data = {
             labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
             datasets: [

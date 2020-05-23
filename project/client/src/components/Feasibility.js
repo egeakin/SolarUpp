@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import {useState} from 'react';
-import Modal from 'react-modal';
 import {Checkbox} from 'primereact/checkbox';
 import {InputText} from 'primereact/inputtext';
 import {Message} from 'primereact/message';
@@ -24,7 +23,7 @@ export class Feasibility extends Component {
             rangeValues: [0,60],
             width: null,
             height: null,
-            freeSpace: 115,
+            freeSpace: 100,
             occupiedSpace: null,
             buildingFacade: null,
             latitude: 39.875,
@@ -40,7 +39,7 @@ export class Feasibility extends Component {
             ],
             feasibilityStudy: null,
             isResponseFetched: false,
-            averageConsumption: 1000,
+            averageConsumption: 830,
             selectedBuilding: null,
             buildings: [{buildingName: "Ev1", buildingType: "House", address: "angora evleri 51", freeSpace: "115"},
                         {buildingName: "Ofis", buildingType: "Office", address: "Cyberpark Tepe Binase", freeSpace: "88"}]
@@ -134,7 +133,7 @@ export class Feasibility extends Component {
 
     componentDidMount() {
         let data;
-    axios
+        axios
       .get("/getRoof")
       .then((res) => {
         console.log(res);
@@ -219,7 +218,7 @@ export class Feasibility extends Component {
                             <div className="p-vertical">
                                 <div className="p-cl-12">
                                     <h3>Adjust Your Roof Angle Range: {this.state.rangeValues[0]},{this.state.rangeValues[1]}</h3>
-                                    <Slider value={this.state.rangeValues} onChange={this.onChangeRangeSlider} range={true} style={{width: '14em'}} />
+                                    <Slider value={this.state.rangeValues} max={60} onChange={this.onChangeRangeSlider} range={true} style={{width: '14em'}} />
                                 </div>
                                 <div className="p-col-12" style={{height:'20px'}}>
                                     
@@ -298,6 +297,14 @@ export class Feasibility extends Component {
                                         </div>
                                         <div className="p-col-6"> 
                                             <InputText value={this.state.roofAngle} style={{width:'100px'}} onChange={(e) => this.setState({roofAngle: e.target.value})} rows={1} cols={10}></InputText>
+                                        </div>
+                                    </div>
+                                    <div className="p-grid">
+                                        <div className="p-col-6">
+                                            <label htmlFor="type">Monthly Elecricity Consumption (kWh): </label>
+                                        </div>
+                                        <div className="p-col-6"> 
+                                            <InputText value={this.state.averageConsumption} style={{width:'100px'}} onChange={(e) => this.setState({averageConsumption: e.target.value})} rows={1} cols={10}></InputText>
                                         </div>
                                     </div>
                                 </div>

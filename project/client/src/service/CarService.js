@@ -16,4 +16,5 @@ export class CarService {
         return axios.get('assets/demo/data/cars-large.json')
                 .then(res => res.data.data);
     }
+
 }

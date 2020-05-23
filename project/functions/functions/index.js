@@ -29,6 +29,8 @@ const {
 
 const { addRoof, getUserRoofs } = require("./handlers/roofs");
 const { sendMail } = require("./handlers/emails");
+const { getAllInverters } = require("./handlers/inverters");
+const { getAllSolarPanels } = require("./handlers/panels");
 
 // scream routes
 app.get("/screams", getAllScreams);
@@ -54,6 +56,12 @@ app.post("/emails/sendMail", sendMail);
 // roof routes
 app.post("/addRoof", FBAuth, addRoof);
 app.get("/getRoof", FBAuth, getUserRoofs);
+
+//inverter routes
+app.get("/getInverters", FBAuth, getAllInverters);
+
+//panel routes
+app.get("/getPanels", FBAuth, getAllSolarPanels);
 
 //region('europe-west1)
 exports.api = functions.https.onRequest(app);
