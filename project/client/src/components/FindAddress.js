@@ -40,6 +40,7 @@ import {
   createWorldTerrain,
   Color,
   Transforms,
+  Geometry,
 } from "cesium";
 import { Growl } from "primereact/growl";
 import { Button } from "primereact/button";
@@ -48,7 +49,7 @@ import { Dialog } from "primereact/dialog";
 import { Inplace, InplaceDisplay, InplaceContent } from "primereact/inplace";
 import { InputText } from "primereact/inputtext";
 import { Card } from "primereact/card";
-import { Map, Polygon, GoogleApiWrapper, GoogleAPI } from "google-maps-react";
+// import { Map, GoogleMap, Polygon, GoogleApiWrapper, GoogleAPI, withScriptjs, withGoogleMap, Marker} from "google-maps-react";
 import { animateScroll } from "react-scroll";
 import { Steps } from "primereact/steps";
 import { Link } from "react-router-dom";
@@ -62,11 +63,20 @@ import { SplitButton } from "primereact/splitbutton";
 import { Toolbar } from "primereact/toolbar";
 import PropTypes from "prop-types";
 import html2canvas from "html2canvas";
+import GoogleMapReact from "google-map-react";
+import {
+  withScriptjs,
+  withGoogleMap,
+  GoogleMap,
+  Marker,
+  Polygon,
+} from "react-google-maps";
+import { compose, withProps } from "recompose";
+import { SphericalUtil, PolyUtil } from "node-geometry-library";
 
 // redux
 import { connect } from "react-redux";
 import axios from "axios";
-
 Ion.defaultAccessToken =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJiOTNjYjIwOC00YmQxLTRiZTAtYTFlNi03MjQ1NWMzMmE1YjkiLCJpZCI6MTkyMTIsInNjb3BlcyI6WyJhc3IiLCJnYyJdLCJpYXQiOjE1ODkyOTM3NTZ9.Rx7wwt26JrRXp_upYCawvQDurrHOIn2ddb109kXNv5k";
 
@@ -84,11 +94,23 @@ const styles = {
   },
 };
 
+const mapStyles = {
+  width: "80%",
+  height: "100%",
+};
+
 const options = {
   enableHighAccuracy: true,
   timeout: 5000,
   maximumAge: 0,
 };
+
+const triCoords = [
+  { lat: 39.88389095569122, lng: 32.755354254001226 },
+  { lat: 39.883921163078256, lng: 32.75670766092878 },
+  { lat: 39.88351997703406, lng: 32.756732027785546 },
+  { lat: 39.88347736859615, lng: 32.75538975962977 },
+];
 
 const items = [
   { label: "Find Address" },
@@ -97,7 +119,22 @@ const items = [
   { label: "Track System" },
 ];
 
+const MyMapComponent = withScriptjs(
+  withGoogleMap((props) => (
+    <GoogleMap
+      defaultZoom={30}
+      defaultCenter={{ lat: triCoords[0].lat, lng: triCoords[0].lng }}
+    >
+      <Polygon path={triCoords} />
+      {props.isMarkerShown && (
+        <Marker position={{ lat: triCoords[0].lat, lng: triCoords[0].lng }} />
+      )}
+    </GoogleMap>
+  ))
+);
+
 export class FindAddress extends Component {
+  //COMPONENTDIDMOUNT
   componentDidMount() {
     this.getLocation();
     const { viewer } = this;
@@ -114,6 +151,68 @@ export class FindAddress extends Component {
     ];
   }
 
+  //CONSTRUCTOR
+  constructor(props) {
+    super(props);
+    this.cesium = React.createRef();
+    this.state = {
+      latitude: null,
+      longitude: null,
+      screenPositions: [],
+      pointPositions: [],
+      pointPositionsX: [],
+      pointPositionsY: [],
+      cartesian3dPositions: [],
+      cartesian3dPositionsX: [],
+      cartesian3dPositionsY: [],
+      canDrawLine: false,
+      google: this.props,
+      userData: {
+        type: null,
+        properties: {
+          name: null,
+          amenity: null,
+          popupContent: null,
+        },
+        geometry: {
+          type: null,
+          coordinates: [],
+        },
+      },
+      displayPosition: false,
+      drawedPositions: [],
+      position: "topright",
+      height: 0.0,
+      width: 0.0,
+      area: 0.0,
+      circumference: 0.0,
+      roodImage: null,
+      radioValue: null,
+      value: null,
+      selectedType: null,
+      roofLatitude: 0.0,
+      roofLongitude: 0.0,
+      edge: null,
+      types: [
+        { label: "Suburban Estate", value: "Suburban Estate" },
+        { label: "Apartment", value: "Apartment" },
+        { label: "Industrial Estate", value: "Industrial Estate" },
+      ],
+    };
+    this.showInfo = this.showInfo.bind(this);
+    this.addRoof = this.addRoof.bind(this);
+    this.getLocation = this.getLocation.bind(this);
+    this.getCoordinates = this.getCoordinates.bind(this);
+    this.action = this.action.bind(this);
+    this.onClick = this.onClick.bind(this);
+    this.onHide = this.onHide.bind(this);
+    this.calculateCircumference = this.calculateCircumference.bind(this);
+    this.deg2rad = this.deg2rad.bind(this);
+    this.getDistanceFromLatLonInM = this.getDistanceFromLatLonInM.bind(this);
+    this.polygonArea = this.polygonArea.bind(this);
+  }
+
+  //FUNCTIONS
   getLocationFromScreenXY = (x, y) => {
     const scene = this.viewer.scene;
     if (!scene) return;
@@ -138,63 +237,11 @@ export class FindAddress extends Component {
     return deg * (Math.PI / 180);
   }
 
-  constructor(props) {
-    super(props);
-    this.cesium = React.createRef();
-    this.state = {
-      latitude: null,
-      longitude: null,
-      pointPositions: [],
-      pointPositionsX: [],
-      pointPositionsY: [],
-      cartesian3dPositions: [],
-      cartesian3dPositionsX: [],
-      cartesian3dPositionsY: [],
-      canDrawLine: false,
-      googlemap: null,
-      userData: {
-        type: null,
-        properties: {
-          name: null,
-          amenity: null,
-          popupContent: null,
-        },
-        geometry: {
-          type: null,
-          coordinates: [],
-        },
-      },
-      displayPosition: false,
-      drawedPositions: [],
-      position: "topright",
-      height: 0.0,
-      width: 0.0,
-      area: 0.0,
-      circumference: 0.0,
-      roodImage: null,
-      radioValue: null,
-      value: null,
-      selectedType: null,
-      types: [
-        { label: "Suburban Estate", value: "Suburban Estate" },
-        { label: "Apartment", value: "Apartment" },
-        { label: "Industrial Estate", value: "Industrial Estate" },
-      ],
-    };
-    this.showInfo = this.showInfo.bind(this);
-    this.addRoof = this.addRoof.bind(this);
-    this.getLocation = this.getLocation.bind(this);
-    this.getCoordinates = this.getCoordinates.bind(this);
-    this.action = this.action.bind(this);
-    this.onClick = this.onClick.bind(this);
-    this.onHide = this.onHide.bind(this);
-    this.calculateCircumference = this.calculateCircumference.bind(this);
-    this.deg2rad = this.deg2rad.bind(this);
-    this.getDistanceFromLatLonInM = this.getDistanceFromLatLonInM.bind(this);
-    this.polygonArea = this.polygonArea.bind(this);
-  }
-
   action(label, evt) {
+    this.state.screenPositions.push({
+      x: evt.position.x,
+      y: evt.position.y,
+    });
     let coords = this.getLocationFromScreenXY(evt.position.x, evt.position.y);
     let lon = this.radiansToDegrees(coords.longitude);
     let lat = this.radiansToDegrees(coords.latitude);
@@ -211,10 +258,8 @@ export class FindAddress extends Component {
       y: Number(lat),
     });
     console.log(this.state.pointPositions);
-
     this.state.pointPositionsX.push(Number(lon));
     this.state.pointPositionsY.push(Number(lat));
-
     console.log(this.state.pointPositions);
   }
 
@@ -348,16 +393,19 @@ export class FindAddress extends Component {
         this.state.pointPositions[0].y,
         0
       );
-      this.state.area = this.polygonArea(
-        this.state.pointPositionsX,
-        this.state.pointPositionsY,
-        this.state.pointPositions.length
-      );
+      // this.state.area = this.polygonArea(
+      //   this.state.pointPositionsX,
+      //   this.state.pointPositionsY,
+      //   this.state.pointPositions.length
+      // );
+      this.convertGoogleFormat(); //This calculates this.state.area
       console.log(this.state.area);
+      this.state.roofLatitude = this.state.pointPositions[0].x;
+      this.state.roofLongitude = this.state.pointPositions[0].y;
 
       this.viewer.render();
-      this.state.roofImage = this.viewer.canvas.toDataURL("image/png", 0.1);
-      console.log(typeof this.state.roofImage);
+      this.state.roofImage = this.viewer.canvas.toDataURL();
+      console.log(this.state.roofImage);
       animateScroll.scrollToBottom();
     }
   }
@@ -373,6 +421,12 @@ export class FindAddress extends Component {
     this.state.cartesian3dPositions = [];
     this.state.cartesian3dPositionsX = [];
     this.state.cartesian3dPositionsY = [];
+    this.state.drawedPositions = [];
+    this.state.canDrawLine = false;
+    this.state.circumference = 0.0;
+    this.state.area = 0.0;
+    this.state.roofLatitude = 0.0;
+    this.state.roofLongitude = 0.0;
   }
 
   addRoof() {
@@ -434,13 +488,20 @@ export class FindAddress extends Component {
       .catch((err) => console.log(err));
   }
 
-  printDocument() {
-    this.viewer.render();
-    this.state.roofImage = this.viewer.scene.pocanvas.toDataURL();
-    console.log(this.state.roofImage);
+  convertGoogleFormat() {
+    let convertedCoordinates = [];
+    for (let i = 0; i < this.state.pointPositions.length; i++) {
+      convertedCoordinates.push({
+        lat: this.state.pointPositions[i].y,
+        lng: this.state.pointPositions[i].x,
+      });
+    }
+    this.state.area = SphericalUtil.computeArea(convertedCoordinates);
   }
 
   render() {
+    console.log(this.state.screenPositions);
+
     return (
       <div className="p-grid p-dir-col p-fluid">
         <div className="card card-w-title">
@@ -449,14 +510,6 @@ export class FindAddress extends Component {
             Enter your address from right upper toolbar after picking search
             button.
           </p3>
-          {/* <div className="p-grid p-justify-end">
-            <Button
-              onClick={this.showInfo}
-              label="Help"
-              className="p-button-info p-button-rounded p-justify-end"
-              style={{ width: "10em", marginLeft: "88em" }}
-            />
-          </div> */}
         </div>
 
         <div className="p-grid p-fluid dashboard">
@@ -490,7 +543,6 @@ export class FindAddress extends Component {
 
             <div className="p-grid p-justify-end">
               <div className="p-col-12 p-md-2">
-                {/* <label htmlFor="input">Builging Name</label> */}
                 <Button label="Building Name:"></Button>
               </div>
               <div className="p-col-12 p-md-4">
@@ -644,11 +696,11 @@ export class FindAddress extends Component {
                     <div className="highlight-details ">
                       <i className="pi pi-search" />
                       <span>Roof Latitude</span>
-                      {this.state.canDrawLine && (
+                      {
                         <span className="count">
-                          {this.state.pointPositions[0].x.toFixed(1)}
+                          {this.state.roofLatitude.toFixed(1)}
                         </span>
-                      )}
+                      }
                     </div>
                   </div>
                 </div>
@@ -664,11 +716,11 @@ export class FindAddress extends Component {
                       <i className="pi pi-search" />
                       <span>Roof Longitude</span>
                       <span>
-                        {this.state.canDrawLine && (
+                        {
                           <span className="count">
-                            {this.state.pointPositions[0].y.toFixed(1)}
+                            {this.state.roofLongitude.toFixed(1)}
                           </span>
-                        )}
+                        }
                       </span>
                     </div>
                   </div>
@@ -685,6 +737,17 @@ export class FindAddress extends Component {
                 style={{ marginLeft: "85em", width: "10em" }}
                 className="p-button-raised p-button-rounded p-button-warning"
               />
+            </div>
+
+            <div>
+              {/* <MyMapComponent
+                  isMarkerShown
+                  googleMapURL=yourAPI
+                  loadingElement={<div style={{ height: `100%` }} />}
+                  containerElement={<div style={{ height: `400px` }} />}
+                  mapElement={<div style={{ height: `100%` }} />}
+                >
+                </MyMapComponent> */}
             </div>
           </div>
         </div>

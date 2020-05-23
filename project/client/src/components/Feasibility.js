@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { useState } from "react";
-//import Modal from 'react-modal';
 import { Checkbox } from "primereact/checkbox";
 import { InputText } from "primereact/inputtext";
 import { Message } from "primereact/message";
@@ -8,9 +7,11 @@ import { Button } from "primereact/button";
 import { Slider } from "primereact/slider";
 import { Messages } from "primereact/messages";
 import { OverlayPanel } from "primereact/overlaypanel";
-import axios from "axios";
+import { Column } from "primereact/column";
+import { DataTable } from "primereact/datatable";
 import FeasbilityCard from "./FeasbilityCard.js";
-import { connect } from "react-redux";
+import "./centerPanel.scss";
+import axios from "axios";
 import cannyEdgeDetector from "canny-edge-detector";
 import Image from "image-js";
 
@@ -20,10 +21,10 @@ export class Feasibility extends Component {
     super();
     this.state = {
       checkboxValue: [],
-      rangeValues: [0, 100],
+      rangeValues: [0, 60],
       width: null,
       height: null,
-      freeSpace: null,
+      freeSpace: 100,
       occupiedSpace: null,
       buildingFacade: null,
       latitude: null,
@@ -58,160 +59,42 @@ export class Feasibility extends Component {
         },
       ],
       feasibilityStudy: null,
+      isResponseFetched: false,
+      averageConsumption: 830,
+      selectedBuilding: null,
+      buildings: [
+        {
+          buildingName: "Ev1",
+          buildingType: "House",
+          address: "angora evleri 51",
+          freeSpace: "115",
+        },
+        {
+          buildingName: "Ofis",
+          buildingType: "Office",
+          address: "Cyberpark Tepe Binase",
+          freeSpace: "88",
+        },
+      ],
     };
 
     this.restoreToDefaultValues = this.restoreToDefaultValues.bind(this);
     this.calculateFeasibility = this.calculateFeasibility.bind(this);
+    this.selectBuilding = this.selectBuilding.bind(this);
     this.onChangeRangeSlider = this.onChangeRangeSlider.bind(this);
     this.onCheckboxChange = this.onCheckboxChange.bind(this);
-    this.showFeasbilityResults = this.showFeasbilityResults.bind(this);
-    this.GetFixedSystemValues = this.GetFixedSystemValues.bind(this);
-    this.GetRowValues = this.GetRowValues.bind(this);
-    this.ParsePvgisCsv = this.ParsePvgisCsv.bind(this);
   }
 
-  /**
-   * Get fixed system values from the array.
-   * @param {Array} lines Lines to parse.
-   * @returns {Object}
-   */
-  GetFixedSystemValues = (lines) => {
-    let obj;
-
-    lines.forEach((line) => {
-      let parts = line.replaceAll("\t\t", "\t").split("\t");
-
-      if (!parts || parts.length !== 5 || parts[0] !== "Fixed system:") {
-        return;
-      }
-
-      let aoi = parseFloat(parts[1].trim()),
-        spectral = parseFloat(parts[2].trim()),
-        temp = parseFloat(parts[3].trim()),
-        combined = parseFloat(parts[4].trim());
-
-      if (!aoi) {
-        aoi = parts[1].trim();
-      }
-
-      if (!spectral) {
-        spectral = parts[2].trim();
-      }
-
-      if (!temp) {
-        temp = parts[3].trim();
-      }
-
-      if (!combined) {
-        combined = parts[4].trim();
-      }
-
-      obj = {
-        aoi: {
-          info: "AOI loss (%)",
-          value: aoi,
-        },
-        spectral: {
-          info: "Spectral effects (%)",
-          value: spectral,
-        },
-        temp: {
-          info: "Temperature and low irradiance loss (%)",
-          value: temp,
-        },
-        combined: {
-          info: "Combined losses (%)",
-          value: combined,
-        },
-      };
-    });
-
-    return obj;
-  };
-
-  /**
-   * Get array'd values, formatted.
-   * @param {Array} lines Lines to parse.
-   * @param {String} index First item in row.
-   * @returns {Object}
-   */
-
-  GetRowValues = (lines, index) => {
-    let obj;
-
-    lines.forEach((line) => {
-      let parts = line.replaceAll("\t\t", "\t").split("\t");
-
-      if (!parts || parts.length !== 6 || parts[0] !== index) {
-        return;
-      }
-
-      obj = {
-        Ed: parseFloat(parts[1].trim()),
-        Em: parseFloat(parts[2].trim()),
-        Hd: parseFloat(parts[3].trim()),
-        Hm: parseFloat(parts[4].trim()),
-        SDm: parseFloat(parts[5].trim()),
-      };
-    });
-
-    return obj;
-  };
-
-  /**
-   * Parse the incoming CSV and return usable values.
-   * @param {Object} obj Input values and CSV from PVGIS Europe.
-   * @returns {Promise}
-   */
-
-  ParsePvgisCsv = (obj) => {
-    console.log("Function: QueryPvgisEuropeV5");
-    console.log("obj", obj);
-
-    return new Promise((resolve, reject) => {
-      let lines = obj.csv.replaceAll("\n", "").split("\r");
-
-      if (!lines) {
-        return reject("Invalid CSV from PVGIS.");
-      }
-
-      return resolve({
-        //input: FormatInputValues(obj.input),
-        data: {
-          fixedAngle: {
-            monthly: {
-              jan: this.GetRowValues(lines, "1"),
-              feb: this.GetRowValues(lines, "2"),
-              mar: this.GetRowValues(lines, "3"),
-              apr: this.GetRowValues(lines, "4"),
-              may: this.GetRowValues(lines, "5"),
-              jun: this.GetRowValues(lines, "6"),
-              jul: this.GetRowValues(lines, "7"),
-              aug: this.GetRowValues(lines, "8"),
-              sep: this.GetRowValues(lines, "9"),
-              oct: this.GetRowValues(lines, "10"),
-              nov: this.GetRowValues(lines, "11"),
-              dec: this.GetRowValues(lines, "12"),
-            },
-            yearly: this.GetRowValues(lines, "Year"),
-          },
-          fixedSystem: this.GetFixedSystemValues(lines),
-        },
-        info: {
-          Ed: "Average daily energy production from the given system (kWh)",
-          Em: "Average monthly energy production from the given system (kWh)",
-          Hd:
-            "Average daily sum of global irradiation per square meter received by the modules of the given system (kWh/m2)",
-          Hm:
-            "Average monthly sum of global irradiation per square meter received by the modules of the given system (kWh/m2)",
-          SDm:
-            "Standard deviation of the monthly energy production due to year-to-year variation (kWh)",
-        },
-      });
-    });
-  };
-
   calculateFeasibility(event) {
+    let angle;
+    if (Array.isArray(this.state.roofAngle) == true) {
+      angle = (this.state.roofAngle[0] + this.state.roofAngle[1]) / 2;
+    } else if (this.state.roofAngle == null) {
+      angle = "35";
+    } else if (Array.isArray(this.state.roofAngle) == false) {
+      angle = this.state.roofAngle;
+    }
+
     //send request
     let url =
       "https://cors-anywhere.herokuapp.com/https://re.jrc.ec.europa.eu/api/PVcalc?" +
@@ -226,27 +109,52 @@ export class Feasibility extends Component {
       "&" +
       //  'pvtechchoice=' + obj.pvtechchoice + '&' +
       "peakpower=" +
-      "21" +
+      (this.state.freeSpace * 17) / 100 +
       "&" +
       "loss=" +
       "14" +
       "&" +
       "outputformat=" +
-      "csv";
-    // 'angle=' + obj.angle + '&' +
+      "json" +
+      "&" +
+      "angle=" +
+      angle;
     //'aspect=' + obj.aspect;
 
-    axios.get(url).then((res) => this.setState({ feasibilityStudy: res.data }));
-
-    // const feasbilityInfo = JSON.parse(this.state.feasibilityStudy);
-    //   console.log(feasbilityInfo.outputs);
+    axios
+      .get(url)
+      .then((response) => {
+        this.printFeasbilityStudy(response);
+      })
+      .then(() => {
+        var event = new Event("build");
+        // Listen for the event.
+        document.addEventListener(
+          "build",
+          this.openFeasibilityCard(event),
+          false
+        );
+      });
     this.messages.show({
       severity: "info",
-      summary: "Info Message",
-      detail: "Done! Click below to see results.",
+      summary: "Info Message:",
+      detail: "Done feasbility study will be shown.",
     });
-    // this.op1.toggle(event)
-    //console.log(this.state.feasibilityStudy);
+  }
+
+  openFeasibilityCard(event) {
+    this.setState({ isResponseFetched: true });
+    this.op1.toggle(event);
+  }
+
+  printFeasbilityStudy(res) {
+    this.newFeasibilityStudy = res.data;
+
+    return new Promise((resolve) => {
+      if (this.newFeasibilityStudy != null) {
+        resolve();
+      }
+    });
   }
 
   restoreToDefaultValues() {
@@ -255,21 +163,7 @@ export class Feasibility extends Component {
       summary: "Info Message",
       detail: "Default values Restored",
     });
-    this.setState({
-      width: 30,
-      height: 20,
-      freeSpace: "450m^2",
-      occupiedSpace: "150m^2",
-      buildingFacade: "South",
-      latitude: 45,
-      longitude: 8,
-      buildingType: "House",
-    });
-  }
-
-  showFeasbilityResults() {
-    //console.log(this.state.feasibilityStudy);
-    console.log(this.ParsePvgisCsv(this.state.feasibilityStudy));
+    //this.setState({width: 30, height: 20, freeSpace: '450m^2', occupiedSpace: '150m^2', buildingFacade: 'South', latitude: 45, longitude: 8, buildingType: 'House'});
   }
 
   onCheckboxChange(event) {
@@ -286,21 +180,20 @@ export class Feasibility extends Component {
     this.setState({ roofAngle: e.value });
   }
 
+  selectBuilding() {}
+
   componentDidMount() {
-    var data;
+    let data;
     axios
       .get("/getRoof")
       .then((res) => {
         data = res.data;
         this.setState({
-          width: 30,
-          height: 20,
-          freeSpace: "450m^2",
-          occupiedSpace: "150m^2",
-          buildingFacade: "South",
-          latitude: "Alp",
-          longitude: 8,
-          buildingType: "",
+          freeSpace: data[0].roofArea,
+          occupiedSpace: "150",
+          latitude: data[0].roofCoordinates[0]["x"],
+          longitude: data[0].roofCoordinates[0]["y"],
+          buildingType: data[0].buildingType,
           roofImage: data[0].roofImage,
         });
 
@@ -327,6 +220,43 @@ export class Feasibility extends Component {
             <h1>Calculate Your Solar Potential</h1>
             <p>Enter required information to have solar feasibility study.</p>
           </div>
+          <div className="card card-w-title">
+            <h1>Your Registered Buildlings</h1>
+            <DataTable
+              value={this.state.buildings}
+              paginatorPosition="bottom"
+              selectionMode="single"
+              header="Your Buildings"
+              paginator={true}
+              rows={10}
+              responsive={true}
+              selection={this.state.dataTableSelection}
+              onSelectionChange={(event) =>
+                this.setState({ dataTableSelection: event.value })
+              }
+            >
+              <Column
+                field="buildingName"
+                header="Building Name"
+                sortable={false}
+              />
+              <Column
+                field="buildingType"
+                header="Building Type"
+                sortable={false}
+              />
+              <Column field="address" header="Adress" sortable={false} />
+              <Column field="freeSpace" header="Free Space" sortable={false} />
+            </DataTable>
+          </div>
+          <Button
+            label="Select Building"
+            onClick={this.selectBuilding}
+            aria-controls="overlay_panel"
+            aria-haspopup={true}
+            style={{ width: "200px", height: "50px" }}
+            className="p-button-success"
+          />
         </div>
 
         <div className="p-col-12">
@@ -434,6 +364,7 @@ export class Feasibility extends Component {
                     </h3>
                     <Slider
                       value={this.state.rangeValues}
+                      max={60}
                       onChange={this.onChangeRangeSlider}
                       range={true}
                       style={{ width: "14em" }}
@@ -471,12 +402,10 @@ export class Feasibility extends Component {
             </div>
           </div>
         </div>
-
         <div className="p-col-12 p-lg-6">
           <div className="card card-w-title" style={{ height: "500px" }}>
             <h1>Your Roof</h1>
             <div className="p-col-12 p-md-6">
-              <script>cscdsa</script>
               <img
                 src={this.state.roofImage}
                 width="650"
@@ -498,38 +427,6 @@ export class Feasibility extends Component {
             <div className="p-col-12">
               <div className="p-grid">
                 <div className="p-col-6">
-                  <div className="p-grid">
-                    <div className="p-col-6">
-                      <label htmlFor="width">Roof Width: </label>
-                    </div>
-                    <div className="p-col-6">
-                      <InputText
-                        value={this.state.width}
-                        style={{ width: "100px" }}
-                        onChange={(e) =>
-                          this.setState({ width: e.target.value })
-                        }
-                        rows={1}
-                        cols={10}
-                      ></InputText>
-                    </div>
-                  </div>
-                  <div className="p-grid">
-                    <div className="p-col-6">
-                      <label htmlFor="height">Roof Height: </label>
-                    </div>
-                    <div className="p-col-6">
-                      <InputText
-                        value={this.state.height}
-                        style={{ width: "100px" }}
-                        onChange={(e) =>
-                          this.setState({ height: e.target.value })
-                        }
-                        rows={1}
-                        cols={10}
-                      ></InputText>
-                    </div>
-                  </div>
                   <div className="p-grid">
                     <div className="p-col-6">
                       <label htmlFor="freeSpace">Free Space: </label>
@@ -556,22 +453,6 @@ export class Feasibility extends Component {
                         style={{ width: "100px" }}
                         onChange={(e) =>
                           this.setState({ occupiedSpace: e.target.value })
-                        }
-                        rows={1}
-                        cols={10}
-                      ></InputText>
-                    </div>
-                  </div>
-                  <div className="p-grid">
-                    <div className="p-col-6">
-                      <label htmlFor="side">Building Facade: </label>
-                    </div>
-                    <div className="p-col-6">
-                      <InputText
-                        value={this.state.buildingFacade}
-                        style={{ width: "100px" }}
-                        onChange={(e) =>
-                          this.setState({ buildingFacade: e.target.value })
                         }
                         rows={1}
                         cols={10}
@@ -642,6 +523,24 @@ export class Feasibility extends Component {
                       ></InputText>
                     </div>
                   </div>
+                  <div className="p-grid">
+                    <div className="p-col-6">
+                      <label htmlFor="type">
+                        Monthly Elecricity Consumption (kWh):{" "}
+                      </label>
+                    </div>
+                    <div className="p-col-6">
+                      <InputText
+                        value={this.state.averageConsumption}
+                        style={{ width: "100px" }}
+                        onChange={(e) =>
+                          this.setState({ averageConsumption: e.target.value })
+                        }
+                        rows={1}
+                        cols={10}
+                      ></InputText>
+                    </div>
+                  </div>
                 </div>
                 <div className="p-col-6">
                   <div className="p-vertical">
@@ -670,24 +569,21 @@ export class Feasibility extends Component {
                         style={{ width: "200px", height: "50px" }}
                         className="p-button-success"
                       />
-                    </div>
-                    <div className="p-col-12">
-                      <Button
-                        label="Show Results"
-                        onClick={this.showFeasbilityResults}
-                        aria-controls="overlay_panel"
-                        aria-haspopup={true}
-                        style={{ width: "200px", height: "50px" }}
-                        className="p-button-success"
-                      />
-                      <OverlayPanel
-                        ref={(el) => (this.op1 = el)}
-                        id="overlay_panel"
-                        showCloseIcon={true}
-                        style={{ width: "800px", height: "800px" }}
-                      >
-                        <React.Fragment></React.Fragment>
-                      </OverlayPanel>
+                      {this.state.isResponseFetched && (
+                        <div className="panelScreen">
+                          <OverlayPanel
+                            ref={(el) => (this.op1 = el)}
+                            id="overlay_panel"
+                            showCloseIcon={true}
+                          >
+                            <FeasbilityCard
+                              feasbilityInfo={this.newFeasibilityStudy}
+                              freeSpace={this.state.freeSpace}
+                              averageConsumption={this.state.averageConsumption}
+                            />
+                          </OverlayPanel>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -9,7 +9,7 @@ import { FormsDemo } from "./components/FormsDemo";
 import { SampleDemo } from "./components/SampleDemo";
 import { DataDemo } from "./components/DataDemo";
 import { PanelsDemo } from "./components/PanelsDemo";
-import { FindAddress } from "./components/FindAddress";
+import FindAddress  from "./components/FindAddress";
 import { MenusDemo } from "./components/MenusDemo";
 import { MessagesDemo } from "./components/MessagesDemo";
 import { ChartsDemo } from "./components/ChartsDemo";
@@ -19,6 +19,7 @@ import { Documentation } from "./components/Documentation";
 import { Feasibility } from "./components/Feasibility";
 import { SolarPlans } from "./components/SolarPlans";
 import { ComparePlans } from "./components/ComparePlans";
+import { AddSystemPage } from "./components/AddSystemPage";
 import "primereact/resources/themes/nova-light/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
@@ -218,8 +219,13 @@ class App extends Component {
           },
           {
             label: "Compare Plans",
-            icon: "pi pi-fw pi-sort-alt",
+            icon: "pi pi-fw pi-circle-off",
             to: "/comparePlans",
+          },
+          {
+            label: "Add System",
+            icon: "pi pi-fw pi-circle-off",
+            to: "/AddSystemPage",
           },
         ],
       },
@@ -361,6 +367,7 @@ class App extends Component {
               <Route path="/solarPlans" component={SolarPlans} />
               <Route path="/documentation" component={Documentation} />
               <Route path="/ComparePlans" component={ComparePlans} />
+              <Route path="/AddSystemPage" component={AddSystemPage} />
 
               <Route>
                 <AuthRoute exact path="/signup" component={signup} />
