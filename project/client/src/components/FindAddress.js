@@ -460,12 +460,43 @@ export class FindAddress extends Component {
     var formData = new FormData(document.forms[0]);
     formData.append("canvasImage", blob);
 
+    var ymax = this.state.screenPositions[0].y;
+    var ymin = this.state.screenPositions[0].y;
+
+    var xmax = this.state.screenPositions[0].x;
+    var xmin = this.state.screenPositions[0].x;
+
+    for (var i = 1; i < this.state.screenPositions.length; i++) {
+      if (this.state.screenPositions[i].y < ymin) {
+        ymin = this.state.screenPositions[i].y;
+      }
+      if (this.state.screenPositions[i].y > ymax) {
+        ymax = this.state.screenPositions[i].y;
+      }
+      if (this.state.screenPositions[i].x < xmin) {
+        xmin = this.state.screenPositions[i].x;
+      }
+      if (this.state.screenPositions[i].x > xmax) {
+        xmax = this.state.screenPositions[i].x;
+      }
+    }
+
+    var positions = {
+      x: xmin,
+      y: ymin,
+      width: xmax - xmin,
+      height: ymax - ymin,
+    };
+
+    console.log(positions);
+
     let roofInfo = {
       roofCoordinates: this.state.pointPositions,
       roofCircumference: this.state.circumference,
       roofArea: this.state.area,
       buildingName: this.state.buildingName,
       buildingType: this.state.selectedType,
+      screenPositions: positions,
     };
 
     console.log(roofInfo);

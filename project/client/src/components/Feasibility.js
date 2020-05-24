@@ -9,6 +9,7 @@ import { Messages } from "primereact/messages";
 import { OverlayPanel } from "primereact/overlaypanel";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
+import { Chart } from "primereact/chart";
 import FeasbilityCard from "./FeasbilityCard.js";
 import "./centerPanel.scss";
 import axios from "axios";
@@ -24,9 +25,10 @@ export class Feasibility extends Component {
       rangeValues: [0, 60],
       width: null,
       height: null,
-      freeSpace: 100,
+      freeSpace: null,
       occupiedSpace: null,
       buildingFacade: null,
+      buildingName: null,
       latitude: null,
       longitude: null,
       buildingType: null,
@@ -34,6 +36,8 @@ export class Feasibility extends Component {
       roofMaterials: [],
       roofImage: null,
       edgeDetectionImage: null,
+      screenPositions: [],
+      chart: null,
       solarPlans: [
         {
           index: 1,
@@ -189,22 +193,47 @@ export class Feasibility extends Component {
       .then((res) => {
         data = res.data;
         this.setState({
-          freeSpace: data[0].roofArea,
-          occupiedSpace: "150",
+          buildingName: data[0].buildingName,
+          roofArea: data[0].roofArea,
           latitude: data[0].roofCoordinates[0]["x"],
           longitude: data[0].roofCoordinates[0]["y"],
           buildingType: data[0].buildingType,
           roofImage: data[0].roofImage,
+          screenPositions: data[0].screenPositions,
         });
 
         Image.load(this.state.roofImage)
           .then((img) => {
-            const grey = img.grey();
-            const edge = cannyEdgeDetector(grey).toDataURL();
-            this.setState({
-              edgeDetectionImage: edge,
+            img = img.crop({
+              x: this.state.screenPositions["x"],
+              y: this.state.screenPositions["y"],
+              width: this.state.screenPositions["width"],
+              height: this.state.screenPositions["height"],
             });
-            console.log(222);
+            const grey = img.grey();
+            const edge = cannyEdgeDetector(grey);
+            this.setState({
+              roofImage: img.toDataURL(),
+              edgeDetectionImage: edge.toDataURL(),
+            });
+            console.log(edge);
+            this.setState({
+              freeSpace: (edge.histogram[0] / edge.size) * this.state.roofArea,
+              occupiedSpace:
+                (edge.histogram[255] / edge.size) * this.state.roofArea,
+            });
+            this.setState({
+              charts: {
+                labels: ["FreeSpace", "Occupied Space"],
+                datasets: [
+                  {
+                    data: [this.state.freeSpace, this.state.occupiedSpace],
+                    backgroundColor: ["green", "red"],
+                    hoverBackgroundColor: ["green", "red"],
+                  },
+                ],
+              },
+            });
           })
           .catch((err) => console.log(err));
         console.log(333);
@@ -355,7 +384,7 @@ export class Feasibility extends Component {
             </div>
             <div className="p-col-12 p-lg-8">
               <div className="card card-w-title" style={{ height: "350px" }}>
-                <h1>Roof Angel</h1>
+                <h1>Roof Angle</h1>
                 <div className="p-vertical">
                   <div className="p-cl-12">
                     <h3>
@@ -403,17 +432,12 @@ export class Feasibility extends Component {
           </div>
         </div>
         <div className="p-col-12 p-lg-6">
-          <div className="card card-w-title" style={{ height: "500px" }}>
-            <h1>Your Roof</h1>
+          <div className="card card-w-title" style={{ height: "400px" }}>
+            <h1>Your Roof - {this.state.buildingName}</h1>
             <div className="p-col-12 p-md-6">
               <img
                 src={this.state.roofImage}
-                width="650"
-                height="320"
-                alt="roof1"
-              />
-              <img
-                src={this.state.edgeDetectionImage}
+                className="card card-w-title p-fluid"
                 width="650"
                 height="320"
                 alt="roof1"
@@ -421,8 +445,9 @@ export class Feasibility extends Component {
             </div>
           </div>
         </div>
+
         <div className="p-col-12 p-lg-6">
-          <div className="card card-w-title" style={{ height: "500px" }}>
+          <div className="card card-w-title" style={{ height: "400px" }}>
             <h1>Building Properties</h1>
             <div className="p-col-12">
               <div className="p-grid">
@@ -589,6 +614,26 @@ export class Feasibility extends Component {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+        <div className="p-col-12 p-lg-6">
+          <div className="card card-w-title" style={{ height: "400px" }}>
+            <h1>Your Detected Edges On The Roof</h1>
+            <div className="p-col-12 p-md-6">
+              <img
+                src={this.state.edgeDetectionImage}
+                className="card card-w-title p-fluid"
+                width="650"
+                height="320"
+                alt="roof1"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="p-col-12 p-lg-6">
+          <div className="card card-w-title" style={{ height: "400px" }}>
+            <h1> Free Space vs Occupied Space</h1>
+            <Chart type="pie" data={this.state.charts} />
           </div>
         </div>
       </div>
