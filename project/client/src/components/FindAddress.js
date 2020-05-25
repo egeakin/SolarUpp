@@ -197,6 +197,7 @@ export class FindAddress extends Component {
       selectedType: null,
       roofLatitude: 0.0,
       roofLongitude: 0.0,
+      selectedRoofAddress: null,
       edge: null,
       types: [
         { label: "Suburban Estate", value: "Suburban Estate" },
@@ -288,6 +289,7 @@ export class FindAddress extends Component {
 
     Geocode.fromLatLng(this.state.latitude.toString(), this.state.longitude.toString()).then(
       response => {
+        console.log(response.results)
         let temp_address = response.results[5].formatted_address;
         this.setState({
           address: temp_address
@@ -413,15 +415,25 @@ export class FindAddress extends Component {
         this.state.pointPositions[0].y,
         0
       );
-      // this.state.area = this.polygonArea(
-      //   this.state.pointPositionsX,
-      //   this.state.pointPositionsY,
-      //   this.state.pointPositions.length
-      // );
+
       this.convertGoogleFormat(); //This calculates this.state.area
       console.log(this.state.area);
       this.state.roofLatitude = this.state.pointPositions[0].y;
       this.state.roofLongitude = this.state.pointPositions[0].x;
+
+      //Calculating the address of selected roof
+      Geocode.fromLatLng(this.state.roofLatitude.toString(), this.state.roofLongitude.toString()).then(
+        response => {
+          let temp_address = response.results[response.results.length-4].formatted_address;
+          console.log(temp_address)
+          this.setState({
+            selectedRoofAddress: temp_address
+          })
+        },
+        error => {
+          console.error(error);
+        }
+      );
 
       this.viewer.render();
       this.state.roofImage = this.viewer.canvas.toDataURL();
@@ -517,6 +529,7 @@ export class FindAddress extends Component {
       buildingName: this.state.buildingName,
       buildingType: this.state.selectedType,
       screenPositions: positions,
+      selectedRoofAddress: this.state.selectedRoofAddress
     };
 
     console.log(roofInfo);
