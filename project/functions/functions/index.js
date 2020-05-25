@@ -32,10 +32,8 @@ const {
   changePassword,
 } = require("./handlers/users");
 
-<<<<<<< HEAD
 const { addRoof, getUserRoofs, uploadRoofImage } = require("./handlers/roofs");
-=======
-const { addRoof, getUserRoofs } = require("./handlers/roofs");
+//const { addRoof, getUserRoofs } = require("./handlers/roofs");
 
 const { 
   addSystem,
@@ -43,14 +41,12 @@ const {
   deleteSystem,
   getUserSystems,
 } = require("./handlers/maintenance");
->>>>>>> d9a18759ab9b2ab2b6b2253bad77a64b381cff9f
 
 const { sendMail } = require("./handlers/emails");
 const { getAllInverters } = require("./handlers/inverters");
 const { getAllSolarPanels } = require("./handlers/panels");
 
-const { getAllInverters } = require("./handlers/inverters");
-const { getAllSolarPanels } = require("./handlers/panels");
+const { addFeasibilityStudy } = require("./handlers/feasibilityStudy");
 
 // scream routes
 app.get("/screams", getAllScreams);
@@ -88,17 +84,15 @@ app.post("/uploadRoofImage", FBAuth, uploadRoofImage);
 //inverter routes
 app.get("/getInverters", FBAuth, getAllInverters);
 
-<<<<<<< HEAD
-//panel routes
-app.get("/getPanels", FBAuth, getAllSolarPanels);
-=======
 //inverter routes
 app.get("/getInverters", FBAuth, getAllInverters);
 
 //panel routes
 app.get("/getPanels", FBAuth, getAllSolarPanels);
 
->>>>>>> d9a18759ab9b2ab2b6b2253bad77a64b381cff9f
+//feasibilityStudy Routes
+app.post("/addFeasibilityStudy", FBAuth, addFeasibilityStudy);
+
 //region('europe-west1)
 exports.api = functions.https.onRequest(app);
 

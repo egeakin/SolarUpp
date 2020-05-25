@@ -34,30 +34,7 @@ export class Feasibility extends Component {
       roofMaterials: [],
       roofImage: null,
       edgeDetectionImage: null,
-      solarPlans: [
-        {
-          index: 1,
-          solarPanel: "A Marka",
-          inverter: "B Marka",
-          energyProduction: "high",
-          carbonFootPrint: "88",
-          estimatedProfit10Year: "3000",
-          estimatedProfit20Year: "11200",
-          panelEfficiency: "28",
-          cost: "expensive",
-        },
-        {
-          index: 2,
-          solarPanel: "A Marka",
-          inverter: "C Marka",
-          energyProduction: "medium",
-          carbonFootPrint: "65",
-          estimatedProfit10Year: "1000",
-          estimatedProfit20Year: "3000",
-          panelEfficiency: "22",
-          cost: "cheap",
-        },
-      ],
+      selectBuilding: null,
       feasibilityStudy: null,
       isResponseFetched: false,
       averageConsumption: 830,
@@ -149,6 +126,19 @@ export class Feasibility extends Component {
 
   printFeasbilityStudy(res) {
     this.newFeasibilityStudy = res.data;
+    console.log(this.newFeasibilityStudy);
+
+    let newStudy = {
+      buildingId: "7G2wC6Ih3TUy17hxD3vi",
+      study : this.newFeasibilityStudy
+    };
+
+    axios
+      .post("/addFeasibilityStudy", newStudy)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => console.log(err));
 
     return new Promise((resolve) => {
       if (this.newFeasibilityStudy != null) {
@@ -180,7 +170,9 @@ export class Feasibility extends Component {
     this.setState({ roofAngle: e.value });
   }
 
-  selectBuilding() {}
+  selectBuilding() {
+    console.log(this.state.selectedBuilding);
+  } 
 
   componentDidMount() {
     let data;
@@ -216,39 +208,21 @@ export class Feasibility extends Component {
     return (
       <div className="p-grid">
         <div className="p-col-12">
-          <div className="card">
-            <h1>Calculate Your Solar Potential</h1>
-            <p>Enter required information to have solar feasibility study.</p>
-          </div>
-          <div className="card card-w-title">
-            <h1>Your Registered Buildlings</h1>
-            <DataTable
-              value={this.state.buildings}
-              paginatorPosition="bottom"
-              selectionMode="single"
-              header="Your Buildings"
-              paginator={true}
-              rows={10}
-              responsive={true}
-              selection={this.state.dataTableSelection}
-              onSelectionChange={(event) =>
-                this.setState({ dataTableSelection: event.value })
-              }
-            >
-              <Column
-                field="buildingName"
-                header="Building Name"
-                sortable={false}
-              />
-              <Column
-                field="buildingType"
-                header="Building Type"
-                sortable={false}
-              />
-              <Column field="address" header="Adress" sortable={false} />
-              <Column field="freeSpace" header="Free Space" sortable={false} />
-            </DataTable>
-          </div>
+            <div className="card">
+              <h1>Calculate Your Solar Potential</h1>
+              <p>Enter required information to have solar feasibility study.</p>
+            </div>
+            <div className="card card-w-title">
+              <h1>Your Registered Buildlings</h1>
+              <DataTable ref={(el) => this.dt = el} value={this.state.buildings} selection={this.state.selectedBuilding} responsive={true}
+                  onSelectionChange={e => this.setState({selectedBuilding: e.value})} emptyMessage="No buildings found">
+                <Column selectionMode="single" style={{width:'3em'}}/>
+                <Column field="buildingName" header="Building Name" sortable={false}/>
+                <Column field="buildingType" header="Building Type" sortable={false}/>
+                <Column field="address" header="Adress" sortable={false}/>
+                <Column field="freeSpace" header="Free Space" sortable={false}/>
+              </DataTable>
+            </div>
           <Button
             label="Select Building"
             onClick={this.selectBuilding}

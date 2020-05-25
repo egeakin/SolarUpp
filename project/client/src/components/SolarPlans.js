@@ -30,14 +30,29 @@ export class SolarPlans extends Component {
             layout: 'list',
             cars: [],
             selectedType: null,
+            selectedBuilding: null,
             solarPlans:[
-            {index:0, solarPanel:"Default", inverter:"Default", energyProduction:220000, carbonFootPrint:88, 
-            estimatedProfit25Year:11200, panelEfficiency:28, cost:100000},
-            {index:1, solarPanel:"A Marka", inverter:"C Marka", energyProduction:150000, carbonFootPrint:65, 
-            estimatedProfit25Year:3000, panelEfficiency:22, cost:40000},
-            {index:2, solarPanel:"X Marka", inverter:"S Marka", energyProduction:135000, carbonFootPrint:65, 
-            estimatedProfit25Year:3000, panelEfficiency:22, cost:35000}
+            {index:0, solarPanel:"Default", inverter:"Default", energyProduction:5, carbonFootPrint:88, 
+            estimatedProfit25Year:7, panelEfficiency:12, cost:1},
+            {index:1, solarPanel:"A Marka", inverter:"C Marka", energyProduction:5, carbonFootPrint:65, 
+            estimatedProfit25Year:6, panelEfficiency:22, cost:44},
+            {index:2, solarPanel:"X Marka", inverter:"S Marka", energyProduction:7, carbonFootPrint:65, 
+            estimatedProfit25Year:9, panelEfficiency:15, cost:0}
             ],
+            buildings: [
+                {
+                  buildingName: "Ev1",
+                  buildingType: "House",
+                  address: "angora evleri 51",
+                  freeSpace: "115",
+                },
+                {
+                  buildingName: "Ofis",
+                  buildingType: "Office",
+                  address: "Cyberpark Tepe Binase",
+                  freeSpace: "88",
+                },
+              ],
             selectedSolarPlans: null, 
             angle: 35,
             freeSpace: 100,
@@ -73,10 +88,8 @@ export class SolarPlans extends Component {
         for(i = 0; i < size; i++){
             categoryData.push(this.state.solarPlans[i][category]);
         }
-        categoryData.sort();
-        console.log(categoryData);
+        categoryData.sort((a,b)=>a-b);
         let data = rowData[category];
-        console.log(data);
         let index = categoryData.indexOf(data);
 
         if(size == 1) {
@@ -121,7 +134,7 @@ export class SolarPlans extends Component {
     }
     
     carbonFootPrintBodyTemplate(rowData) {
-        return <ProgressBar value={rowData.carbonFootPrint} showValue={false} />;
+        return <span className={classNames('solarPlan-badge','carbonFootPrint-' + this.calculteRank(rowData, 'carbonFootPrint'))}>{rowData.carbonFootPrint}</span>;
     }
 
     getSolarPlanDetail(planNumber) {
@@ -159,6 +172,10 @@ export class SolarPlans extends Component {
         return axios.get("/getInverters")
                 .then(res => res.data);
     }
+
+    selectBuilding() {
+        console.log(this.state.selectedBuilding);
+      } 
 
     addNewSolarPlan() {
         //pvgise seçilen panel inverter ve userın konum bilgileri gidip yeni plan hesabı gelcek
@@ -340,6 +357,8 @@ export class SolarPlans extends Component {
                 </div>
 
                 <div className="p-col-12 p-lg-12">
+                   
+
                     <div className="datatable-solarPlans"> 
                             <DataTable ref={(el) => this.dt = el} value={this.state.solarPlans} header={header} selection={this.state.selectedSolarPlans} 
                                 onSelectionChange={e => this.setState({selectedSolarPlans: e.value})} emptyMessage="No solar plans found">

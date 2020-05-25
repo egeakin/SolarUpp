@@ -55,6 +55,24 @@
           
         }
     
+        &.carbonFootPrint-low {
+            background-color: #FFCDD2;
+            color: #C63737;
+          
+        }
+
+        &.carbonFootPrint-high {
+            background-color: #C8E6C9;
+            color: #256029;
+           
+        }
+    
+        &.carbonFootPrint-medium {
+            background-color: #FFD8B2;
+            color: #805B36;
+          
+        }
+    
         &.panelEfficiency-low {
             background-color: #FFCDD2;
             color: #C63737;
