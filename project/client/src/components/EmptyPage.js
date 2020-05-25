@@ -8,7 +8,15 @@ import {CarService} from '../service/CarService';
 export class EmptyPage extends Component {
 
     componentDidMount() {
-        this.carService.getCarsSmall().then(data => this.setState({dataTableValue: data}));
+        axios
+        .get("/existingSystems")
+        .then((response) => {
+            console.log(response);
+            this.setState({systems: response.body.data});
+            //window.location = "#/feasibility";
+            //window.location.reload();
+        })
+        .catch((err) => {this.showError(); console.log(err)});
     }
 
     onSortChange(event) {
@@ -20,12 +28,17 @@ export class EmptyPage extends Component {
             this.setState({sortOrder: 1, sortField:value, sortKey: value});
     }
 
+    showError() {
+        this.messages.show({severity: 'error', summary: 'Something went wrong'});
+    }
+
     constructor() {
         super();
         this.carService = new CarService();
+        this.showError = this.showError.bind(this);
         
         this.state = {
-            dataTableValue:[],
+            systems: [],
             lineData: {
                 labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
                 datasets: [
@@ -90,13 +103,14 @@ export class EmptyPage extends Component {
 
             <div className="p-col-12">
                     <div className="card card-w-title">
-                        <h1>List of Your Solar Panels</h1>
-                        <DataTable value={this.state.dataTableValue} paginatorPosition="both" selectionMode="single" header="List of Panels" paginator={true} rows={10}
-                            responsive={true} selection={this.state.dataTableSelection} onSelectionChange={event => this.setState({dataTableSelection: event.value})}>
-                            <Column field="vin" header="Vin" sortable={true}/>
-                            <Column field="year" header="Year" sortable={true}/>
-                            <Column field="brand" header="Brand" sortable={true}/>
-                            <Column field="color" header="Color" sortable={true}/>
+                        <h1>List of Your Systems</h1>
+                        <DataTable value={this.state.dataTableValue} paginatorPosition="both" selectionMode="single" header="List of Systems" paginator={true} rows={10}
+                            responsive={true} selection={this.state.systems} onSelectionChange={event => this.setState({dataTableSelection: event.value})}>
+                            <Column field="name" header="Name of the System" sortable={true}/>
+                            <Column field="systemSize" header="System Size" sortable={true}/>
+                            <Column field="inverterSize" header="Inverter Size" sortable={true}/>
+                            <Column field="numPanels" header="Number of Panels" sortable={true}/>
+                            <Column field="age" header="Age of the System" sortable={true}/>
                         </DataTable>
                     </div>
                 </div>
