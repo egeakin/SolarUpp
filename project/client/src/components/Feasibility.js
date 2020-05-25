@@ -67,7 +67,7 @@ export class Feasibility extends Component {
       averageConsumption: 830,
       selectedBuilding: null,
       buildings: [
-        {
+        /*{
           buildingName: "Ev1",
           buildingType: "House",
           address: "angora evleri 51",
@@ -78,7 +78,7 @@ export class Feasibility extends Component {
           buildingType: "Office",
           address: "Cyberpark Tepe Binase",
           freeSpace: "88",
-        },
+        },*/
       ],
     };
 
@@ -165,7 +165,7 @@ export class Feasibility extends Component {
     this.messages.show({
       severity: "info",
       summary: "Info Message",
-      detail: "Default values Restored",
+      detail: "Changes are saved",
     });
     //this.setState({width: 30, height: 20, freeSpace: '450m^2', occupiedSpace: '150m^2', buildingFacade: 'South', latitude: 45, longitude: 8, buildingType: 'House'});
   }
@@ -184,7 +184,56 @@ export class Feasibility extends Component {
     this.setState({ roofAngle: e.value });
   }
 
-  selectBuilding() {}
+  selectBuilding(event) {
+    console.log(this.state.dataTableSelection);
+
+    this.setState({
+      buildingName: this.state.dataTableSelection.buildingName,
+      roofArea: this.state.dataTableSelection.roofArea,
+      latitude: this.state.dataTableSelection.roofCoordinates[0]["x"],
+      longitude: this.state.dataTableSelection.roofCoordinates[0]["y"],
+      buildingType: this.state.dataTableSelection.buildingType,
+      roofImage: this.state.dataTableSelection.roofImage,
+      screenPositions: this.state.dataTableSelection.screenPositions,
+    });
+
+    console.log(this.state.roofImage);
+    Image.load(this.state.dataTableSelection.roofImage)
+      .then((img) => {
+        img = img.crop({
+          x: this.state.screenPositions["x"],
+          y: this.state.screenPositions["y"],
+          width: this.state.screenPositions["width"],
+          height: this.state.screenPositions["height"],
+        });
+        const grey = img.grey();
+        const edge = cannyEdgeDetector(grey);
+        this.setState({
+          roofImage: img.toDataURL(),
+          edgeDetectionImage: edge.toDataURL(),
+        });
+        console.log(edge);
+        this.setState({
+          freeSpace: (edge.histogram[0] / edge.size) * this.state.roofArea,
+          occupiedSpace:
+            (edge.histogram[255] / edge.size) * this.state.roofArea,
+        });
+        this.setState({
+          charts: {
+            labels: ["FreeSpace", "Occupied Space"],
+            datasets: [
+              {
+                data: [this.state.freeSpace, this.state.occupiedSpace],
+                backgroundColor: ["green", "red"],
+                hoverBackgroundColor: ["green", "red"],
+              },
+            ],
+          },
+        });
+      })
+      .catch((err) => console.log(err));
+    console.log(333);
+  }
 
   componentDidMount() {
     let data;
@@ -192,51 +241,14 @@ export class Feasibility extends Component {
       .get("/getRoof")
       .then((res) => {
         data = res.data;
+        console.log(data);
+        var buildings = [];
+        for (let i = 0; i < data.length; i++) {
+          buildings.push(data[i]);
+        }
         this.setState({
-          buildingName: data[0].buildingName,
-          roofArea: data[0].roofArea,
-          latitude: data[0].roofCoordinates[0]["x"],
-          longitude: data[0].roofCoordinates[0]["y"],
-          buildingType: data[0].buildingType,
-          roofImage: data[0].roofImage,
-          screenPositions: data[0].screenPositions,
+          buildings: buildings,
         });
-
-        Image.load(this.state.roofImage)
-          .then((img) => {
-            img = img.crop({
-              x: this.state.screenPositions["x"],
-              y: this.state.screenPositions["y"],
-              width: this.state.screenPositions["width"],
-              height: this.state.screenPositions["height"],
-            });
-            const grey = img.grey();
-            const edge = cannyEdgeDetector(grey);
-            this.setState({
-              roofImage: img.toDataURL(),
-              edgeDetectionImage: edge.toDataURL(),
-            });
-            console.log(edge);
-            this.setState({
-              freeSpace: (edge.histogram[0] / edge.size) * this.state.roofArea,
-              occupiedSpace:
-                (edge.histogram[255] / edge.size) * this.state.roofArea,
-            });
-            this.setState({
-              charts: {
-                labels: ["FreeSpace", "Occupied Space"],
-                datasets: [
-                  {
-                    data: [this.state.freeSpace, this.state.occupiedSpace],
-                    backgroundColor: ["green", "red"],
-                    hoverBackgroundColor: ["green", "red"],
-                  },
-                ],
-              },
-            });
-          })
-          .catch((err) => console.log(err));
-        console.log(333);
       })
       .catch((err) => console.log(err));
   }
@@ -275,7 +287,7 @@ export class Feasibility extends Component {
                 sortable={false}
               />
               <Column field="address" header="Adress" sortable={false} />
-              <Column field="freeSpace" header="Free Space" sortable={false} />
+              <Column field="roofArea" header="Roof Area" sortable={false} />
             </DataTable>
           </div>
           <Button
@@ -580,7 +592,7 @@ export class Feasibility extends Component {
                       <Messages ref={(el) => (this.messages = el)} />
                       <Button
                         onClick={this.restoreToDefaultValues}
-                        label="Restore to default values"
+                        label="Save changes"
                         className="p-button-info"
                         style={{ width: "200px", height: "50px" }}
                       />
