@@ -15,9 +15,6 @@ import "./centerPanel.scss";
 import axios from "axios";
 import cannyEdgeDetector from "canny-edge-detector";
 import Image from "image-js";
-import Geocode from "react-geocode";
-
-Geocode.setApiKey("AIzaSyDx2GbulfV8GnINcVkKTI0cvtt-ZgPKlbE");
 
 export class Feasibility extends Component {
   constructor() {
