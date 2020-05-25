@@ -13,7 +13,12 @@
   },
   "dependencies": {
     "busboy": "^0.3.1",
+<<<<<<< HEAD
     "firebase": "^7.14.5",
+=======
+    "cors": "^2.8.5",
+    "firebase": "^7.9.1",
+>>>>>>> b620f469fae4a8a090e80f71ea4d7cf085b495e8
     "firebase-admin": "^8.6.0",
     "firebase-functions": "^3.6.1",
     "nodemailer": "^6.4.6"

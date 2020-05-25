@@ -1,86 +1,87 @@
 import React, {Component} from 'react';
-import {Messages} from 'primereact/messages';
-import {Growl} from 'primereact/growl';
+import {DataScroller} from 'primereact/datascroller';
+import {CarService} from '../service/CarService';
 import {Button} from 'primereact/button';
-import {Message} from 'primereact/message';
-import {InputText} from 'primereact/inputtext';
+import {Card} from 'primereact/card';
 
 export class MessagesDemo extends Component {
 
     constructor() {
         super();
-
-        this.showInfo = this.showInfo.bind(this);
-        this.showSuccess = this.showSuccess.bind(this);
-        this.showWarn = this.showWarn.bind(this);
-        this.showError = this.showError.bind(this);
+        this.state = {
+            cars: []
+        };
+        this.carservice = new CarService();
+        this.carTemplate = this.carTemplate.bind(this);
     }
 
-    showSuccess() {
-        let msg = {severity: 'success', summary: 'Success Message', detail: 'Order submitted'};
-        this.growl.show(msg);
-        this.messages.show(msg);
+    componentDidMount() {
+        this.carservice.getInverters().then(data => this.setState({cars: data}));
     }
 
-    showInfo() {
-        let msg = {severity: 'info', summary: 'Info Message', detail: 'PrimeReact rocks'};
-        this.growl.show(msg);
-        this.messages.show(msg);
-    }
+    carTemplate(inverter) {
+        console.log(inverter);
+        if (!inverter) {
+            return;
+        }
 
-    showWarn() {
-        let msg = {severity: 'warn', summary: 'Warn Message', detail: 'There are unsaved changes'};
-        this.growl.show(msg);
-        this.messages.show(msg);
-    }
-
-    showError() {
-        let msg = {severity: 'error', summary: 'Error Message', detail: 'Validation failed'};
-        this.growl.show(msg);
-        this.messages.show(msg);
-    }
-    
-    render() {
         return (
-            <div className="p-grid">
-                <div className="p-col-12">
-                    <div className="card">
-                        <h1>Messages and Growl</h1>
-                        <Messages ref={(el) => this.messages = el} />
-                        <Growl ref={(el) => this.growl = el} style={{marginTop: '75px'}} />
-            
-                        <Button onClick={this.showInfo} label="Info" className="p-button-info" style={{width:'10em', marginRight:'.25em'}} />
-                        <Button onClick={this.showSuccess} label="Success" className="p-button-success" style={{width:'10em', marginRight:'.25em'}} />
-                        <Button onClick={this.showWarn} label="Warn" className="p-button-warning" style={{width:'10em', marginRight:'.25em'}} />
-                        <Button onClick={this.showError} label="Error" className="p-button-danger"  style={{width:'10em', marginRight:'.25em'}} />
-                    
-                        <h1>Inline Message</h1>
+            <div className="p-grid" style={{padding: '2em', borderBottom: '1px solid #d9d9d9'}}>
+                    <div className="p-col-12 p-md-3">
+                        <img src={inverter.image}/>
+                    </div>
+                    <div className="p-col-12 p-md-6 car-details">
                         <div className="p-grid">
-                            <div className="p-col-12 p-md-3">
-                                <Message severity="info" text="PrimeReact Rocks" />
-                            </div>
-                            <div className="p-col-12 p-md-3">
-                                <Message severity="success" text="Record Saved" />
-                            </div>
-                            <div className="p-col-12 p-md-3">
-                                <Message severity="warn" text="Are you sure?" />
-                            </div>
-                            <div className="p-col-12 p-md-3">
-                                <Message severity="error" text="Field is required" />
-                            </div>
-                        </div>
+                            <div className="p-col-2 p-sm-6">Name:</div>
+                            <div className="p-col-10 p-sm-6">{inverter.name}</div>
 
-                        <div style={{ marginTop: '30px', paddingLeft: '.5em' }}>
-                            <InputText placeholder="Username" className="p-error" style={{marginRight: '.25em'}} />
-                            <Message severity="error" text="Field is required" />
-                        </div>
-                        <div style={{ marginTop: '30px', paddingLeft: '.5em' }}>
-                            <InputText placeholder="Email" className="p-error" style={{marginRight: '.25em'}} />
-                            <Message severity="error" />
+                            <div className="p-col-2 p-sm-6">Efficiency:</div>
+                            <div className="p-col-10 p-sm-6">{inverter.efficiency}</div>
+
+                            <div className="p-col-2 p-sm-6">Peak AC Power:</div>
+                            <div className="p-col-10 p-sm-6">{inverter.peakACPower}</div>
+
+                            <div className="p-col-2 p-sm-6">Price:</div>
+                            <div className="p-col-10 p-sm-6">{inverter.price}</div>
                         </div>
                     </div>
+                    <div className="p-col-12 p-md-3">
+                        <div className="p-vertical">
+                            <div className="p-col-6">
+                                <Button label="Select" style={{width:'150px'}} onClick={() => this.selectInverter(inverter)} className="p-button-success"></Button>
+                            </div>
+                            <div className="p-col-6">
+                                <Button label="Detail" style={{width:'150px'}} className="p-button-info"></Button>
+                            </div>
+                        </div>
+                    </div> 
+                </div> 
+        );
+    }
+
+    render() {
+        return (
+            
+            <div>
+                <div className="content-section introduction">
+                    <div className="feature-intro">
+                        <h1>DataScroller</h1>
+                        <p>DataScroller displays data with on demand loading using scroll.</p>
+                    </div>
+                </div>
+
+                <div className="content-section implementation">
+                    Demo is at the bottom of this page.
+                </div>
+
+                <div className="content-section implementation">
+                    <DataScroller value={this.state.cars} itemTemplate={this.carTemplate}
+                            rows={this.state.cars.length} buffer={0.6} header="List of Cars" />
                 </div>
             </div>
+                
+
+ 
         );
     }
 }

@@ -9,7 +9,7 @@ import { FormsDemo } from "./components/FormsDemo";
 import { SampleDemo } from "./components/SampleDemo";
 import { DataDemo } from "./components/DataDemo";
 import { PanelsDemo } from "./components/PanelsDemo";
-import { FindAddress } from "./components/FindAddress";
+import FindAddress  from "./components/FindAddress";
 import { MenusDemo } from "./components/MenusDemo";
 import { MessagesDemo } from "./components/MessagesDemo";
 import { ChartsDemo } from "./components/ChartsDemo";
