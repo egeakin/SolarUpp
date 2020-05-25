@@ -286,20 +286,22 @@ export class FindAddress extends Component {
       longitude: position.coords.longitude,
     });
 
-    Geocode.fromLatLng(this.state.latitude.toString(), this.state.longitude.toString()).then(
-      response => {
+    Geocode.fromLatLng(
+      this.state.latitude.toString(),
+      this.state.longitude.toString()
+    ).then(
+      (response) => {
         let temp_address = response.results[5].formatted_address;
         this.setState({
-          address: temp_address
-        })
+          address: temp_address,
+        });
       },
-      error => {
+      (error) => {
         console.error(error);
       }
     );
 
-    console.log(this.state.address)
-
+    console.log(this.state.address);
   }
 
   error() {
