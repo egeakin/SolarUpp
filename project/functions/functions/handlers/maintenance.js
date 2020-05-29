@@ -137,14 +137,14 @@ exports.addGeneration = (request, response) => {
   if (request.body.systemId.trim() === '' || request.body.date.trim() === '' || !isFinite(generated)) {
       return response.status(400).json({ error: "Invalid arguments"});
   }
-  else if (generated < 0) {  //|| !(request.body.date instanceof String)
-      return response.status(401).json({ error: "Invalid arguments"});
+  else if (generated < 0) { 
+      return response.status(400).json({ error: "Invalid arguments"});
   }
   else if (request.body.date.length != 8 || !isFinite(parseInt(request.body.date.substring(0,4))) || !isFinite(parseInt(request.body.date.substring(4,6))) || !isFinite(parseInt(request.body.date.substring(6,8)))) {
-      return response.status(402).json({ error: "Invalid arguments"});
+      return response.status(400).json({ error: "Invalid arguments"});
   }
   else if (parseInt(request.body.date.substring(0,4)) > currentYear || parseInt(request.body.date.substring(0,4)) < 2000 || parseInt(request.body.date.substring(4,6)) > 12 || parseInt(request.body.date.substring(4,6)) < 1 || parseInt(request.body.date.substring(6,8)) > 31 || parseInt(request.body.date.substring(6,8)) < 1) {
-      return response.status(403).json({ error: "Invalid arguments"});
+      return response.status(400).json({ error: "Invalid arguments"});
   }
 
   db.collection("generation")

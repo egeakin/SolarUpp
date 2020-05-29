@@ -33,6 +33,7 @@ const {
 } = require("./handlers/users");
 
 const { addRoof, getUserRoofs, uploadRoofImage } = require("./handlers/roofs");
+//const { addRoof, getUserRoofs } = require("./handlers/roofs");
 
 const {
   addSystem,
@@ -47,6 +48,8 @@ const {
 const { sendMail } = require("./handlers/emails");
 const { getAllInverters } = require("./handlers/inverters");
 const { getAllSolarPanels } = require("./handlers/panels");
+
+const { addFeasibilityStudy, getAllStudies } = require("./handlers/feasibilityStudy");
 
 // scream routes
 app.get("/screams", getAllScreams);
@@ -92,6 +95,10 @@ app.get("/getInverters", FBAuth, getAllInverters);
 
 //panel routes
 app.get("/getPanels", FBAuth, getAllSolarPanels);
+
+//feasibilityStudy Routes
+app.post("/addFeasibilityStudy", FBAuth, addFeasibilityStudy);
+app.get("/getStudies", FBAuth, getAllStudies);
 
 //region('europe-west1)
 exports.api = functions.https.onRequest(app);

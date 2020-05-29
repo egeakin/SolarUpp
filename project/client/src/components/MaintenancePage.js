@@ -79,8 +79,9 @@ export class MaintenancePage extends Component {
     }
 
     uploadData(event) {
-        if (this.state.selectedSystem === null) {
+        if (this.state.selectedSystem == null) {
             this.showError();
+            return;
         }
         for (var i = 0; i < this.state.selectedFileRowCount; i++) {
             let generationInfo = {
