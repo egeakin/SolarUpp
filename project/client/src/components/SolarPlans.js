@@ -463,7 +463,6 @@ export class SolarPlans extends Component {
                             <div className="p-col-6">
                                 <Button label="Detail" style={{width:'150px'}} onClick={(e) => this.op.toggle(e)} className="p-button-info"></Button>
                                     <OverlayPanel ref={(el) => this.op = el} id="overlay_panel" showCloseIcon={true}>
-                                            <p>adadawdadawddaw</p>
                                             <img src={inverter.info}/>
                                     </OverlayPanel>
                             </div>
