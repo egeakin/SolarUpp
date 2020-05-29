@@ -10,6 +10,8 @@ import {ProgressBar} from 'primereact/progressbar';
 import {OverlayPanel} from 'primereact/overlaypanel';
 import {Messages} from 'primereact/messages';
 import {DataScroller} from 'primereact/datascroller';
+import FeasbilityCard from "./FeasbilityCard.js";
+import CompareCard from "./CompareCard.js";
 import "./SolarPlanTable.scss"
 import axios from 'axios';
 
@@ -19,6 +21,9 @@ export class SolarPlans extends Component {
         var selectedSolarPanel = null;
         var selectedInverter = null;
         var newFeasibilityStudy = null;
+        var planSelected = false;
+        var selectedSolarPlan = null;
+        var comparedPlans = [];
         super();
         this.state = {
             dataTableValue:[],
@@ -30,20 +35,19 @@ export class SolarPlans extends Component {
             layout: 'list',
             cars: [],
             selectedType: null,
-            solarPlans:[
-            {index:0, solarPanel:"Default", inverter:"Default", energyProduction:220000, carbonFootPrint:88, 
-            estimatedProfit25Year:11200, panelEfficiency:28, cost:100000},
-            {index:1, solarPanel:"A Marka", inverter:"C Marka", energyProduction:150000, carbonFootPrint:65, 
-            estimatedProfit25Year:3000, panelEfficiency:22, cost:40000},
-            {index:2, solarPanel:"X Marka", inverter:"S Marka", energyProduction:135000, carbonFootPrint:65, 
-            estimatedProfit25Year:3000, panelEfficiency:22, cost:35000}
-            ],
+            selectedBuilding: null,
+            solarPlans:[],
+            buildings: [],
             selectedSolarPlans: null, 
-            angle: 35,
-            freeSpace: 100,
-            latitude: 39.875,
-            longitude: 32.714,
-            annualConsumption: 12000
+            roofAngle: null,
+            freeSpace: null,
+            latitude: null,
+            longitude: null,
+            averageConsumption: null,
+            isPlanSelected: false,
+            isCompareSelected: false,
+            showInverterDetail: false,
+            showPanelDetail: false
         };
 
 
@@ -57,14 +61,63 @@ export class SolarPlans extends Component {
       this.estimatedProfit25YearBodyTemplate = this.estimatedProfit25YearBodyTemplate.bind(this); //status
       this.panelEfficiencyBodyTemplate = this.panelEfficiencyBodyTemplate.bind(this); //status
       this.costBodyTemplate = this.costBodyTemplate.bind(this); //status
-      this.actionBodyTemplate = this.actionBodyTemplate.bind(this); //delete ve buyutec butonu
 
       //functions
       this.getSolarPlanDetail = this.getSolarPlanDetail.bind(this);
       this.addNewSolarPlan = this.addNewSolarPlan.bind(this);
       this.showError = this.showError.bind(this);
       this.getInverter = this.getInverter.bind(this);
+      this.selectBuilding = this.selectBuilding.bind(this);
+      this.compareSolarPlans = this.compareSolarPlans.bind(this);
+      this.getPanelDetail = this.getPanelDetail.bind(this);
+      this.getInverterDetail = this.getInverterDetail.bind(this);
     }
+
+    getSolarPlans() {
+        return axios.get("/getStudies")
+                .then(res => res.data);
+    }
+
+    selectBuilding() {
+        console.log(this.state.dataTableSelection);
+        this.getSolarPlans()
+        .then((response) =>  {
+            this.getRoofStudies(response).
+            then(roofPlans => {
+                this.renderSolarPlans(roofPlans);
+            });
+        })
+    }
+    
+    getRoofStudies(userStudies) {
+        let roofPlans = [];
+
+        return new Promise((resolve) => {
+            if (userStudies != null) {
+              resolve(userStudies);
+            }
+          });   
+    }
+
+    renderSolarPlans(roofPlans) {
+        //set state roof angle ve average consumption ekle
+        this.setState({averageConsumption: roofPlans[0].averageConsumption});
+        this.setState({roofAngle: roofPlans[0].roofAngle});
+        this.setState({freeSpace: this.state.dataTableSelection.roofArea});
+        this.setState({latitude: this.state.dataTableSelection.roofCoordinates[0].y});
+        this.setState({longitude: this.state.dataTableSelection.roofCoordinates[0].x});
+        
+        let tmpPlans = [];
+        let cost, energyProduction, carbonFootPrint, estimatedProfit25Year;
+         for(let i = 0; i < roofPlans.length; i++){
+            if(roofPlans[i].buildingId == this.state.dataTableSelection.roofId){
+                tmpPlans.push(roofPlans[i]);
+            }
+        }
+        this.setState({solarPlans: tmpPlans});
+        console.log(this.state.solarPlans);
+    }
+    
 
     calculteRank(rowData, category) {
         let size = this.state.solarPlans.length
@@ -73,10 +126,8 @@ export class SolarPlans extends Component {
         for(i = 0; i < size; i++){
             categoryData.push(this.state.solarPlans[i][category]);
         }
-        categoryData.sort();
-        console.log(categoryData);
+        categoryData.sort((a,b)=>a-b);
         let data = rowData[category];
-        console.log(data);
         let index = categoryData.indexOf(data);
 
         if(size == 1) {
@@ -104,12 +155,14 @@ export class SolarPlans extends Component {
     }
 
     energyProductionBodyTemplate(rowData) {
-        return  <span className={classNames('solarPlan-badge', 'energyProduction-' + this.calculteRank(rowData, 'energyProduction'))}>{rowData.energyProduction}</span>;
+        let energyProduction = rowData.energyProduction.toFixed(2);
+        return  <span className={classNames('solarPlan-badge', 'energyProduction-' + this.calculteRank(rowData, 'energyProduction'))}>{energyProduction}</span>;
     }
 
 
     estimatedProfit25YearBodyTemplate(rowData) {
-        return <span className={classNames('solarPlan-badge','estimatedProfit25Year-' + this.calculteRank(rowData, 'estimatedProfit25Year'))}>{rowData.estimatedProfit25Year}</span>;
+        let estimatedProfit25Year = rowData.estimatedProfit25Year.toFixed(2);
+        return <span className={classNames('solarPlan-badge','estimatedProfit25Year-' + this.calculteRank(rowData, 'estimatedProfit25Year'))}>{estimatedProfit25Year}</span>;
     }
 
     panelEfficiencyBodyTemplate(rowData) {
@@ -117,24 +170,102 @@ export class SolarPlans extends Component {
     }
 
     costBodyTemplate(rowData) {
-        return <span className={classNames('solarPlan-badge','cost-' + this.calculteRank(rowData, 'cost'))}>{rowData.cost}</span>;
+        let cost = rowData.cost.toFixed(2)
+        return <span className={classNames('solarPlan-badge','cost-' + this.calculteRank(rowData, 'cost'))}>{cost}</span>;
     }
     
     carbonFootPrintBodyTemplate(rowData) {
-        return <ProgressBar value={rowData.carbonFootPrint} showValue={false} />;
+        let carbonFootPrint = rowData.carbonFootPrint.toFixed(2)
+        return <span className={classNames('solarPlan-badge','carbonFootPrint-' + this.calculteRank(rowData, 'carbonFootPrint'))}>{carbonFootPrint}</span>;
     }
 
-    getSolarPlanDetail(planNumber) {
-        //console.log(planNumber);
+    getSolarPlanDetail() {
+        if(this.state.selectedSolarPlans == null){
+            let msg = {severity: 'error', summary: 'Error Message', detail: 'Please choose a plan.'};
+            this.messages.show(msg);
+        }
+        else if(this.state.selectedSolarPlans.length > 1){
+            let msg = {severity: 'error', summary: 'Error Message', detail: 'Please only choose 1 plan.'};
+            this.messages.show(msg);
+        }
+        else{
+            console.log(this.state.selectedSolarPlans);
+            this.selectedSolarPlan = this.state.selectedSolarPlans[0];
+            this.planSelected = true;
+            this.checkSelectedPlans().then(() => {
+                var event = new Event("build");
+                // Listen for the event.
+                document.addEventListener(
+                "build",
+                this.openDetailCard(event),
+                false
+                );
+            });
+                
+        }
     }
 
+    compareSolarPlans() {
+        if(this.state.selectedSolarPlans == null){
+            let msg = {severity: 'error', summary: 'Error Message', detail: 'Please choose a plan.'};
+            this.messages.show(msg);
+        }
+        else if(this.state.selectedSolarPlans.length > 1){
+            console.log(this.state.selectedSolarPlans);
+            this.comparedPlans = this.state.selectedSolarPlans;
+          //  this.planSelected = true;
+            this.checkComparedSolarPlans().then(() => {
+                var event = new Event("build1");
+                // Listen for the event.
+                document.addEventListener(
+                "build1",
+                this.openCompareCard(event),
+                false
+                );
+            });
+        }
+    }
 
-    actionBodyTemplate(rowData) {
-        return (
-            <div>
-                <Button type="button" onClick={this.getSolarPlanDetail(rowData.index)} icon="pi pi-search" className="p-button-secondary"></Button>
-            </div>
-        );
+    checkSelectedPlans(){
+        return new Promise((resolve) => {
+            if (this.state.selectedSolarPlans.length == 1) {
+              resolve();
+            }
+          });
+    }
+
+    checkComparedSolarPlans() {
+        return new Promise((resolve) => {
+            if (this.state.selectedSolarPlans.length >= 1) {
+              resolve();
+            }
+          });
+    }
+
+    openCompareCard(event) {
+        this.setState({isCompareSelected: true});
+        this.op3.toggle(event);
+    }
+
+    openDetailCard(event) {
+        this.setState({isPlanSelected: true});
+        this.op2.toggle(event);
+    }
+
+    getPanelDetail() {
+        this.b = true;
+    }
+
+    getInverterDetail() {
+        this.a = true;
+    }
+
+    openPanelDetail(event) {
+
+    }
+
+    openInverterDetail(event) {
+
     }
 
     selectInverter(inverter) {
@@ -163,28 +294,19 @@ export class SolarPlans extends Component {
     addNewSolarPlan() {
         //pvgise seçilen panel inverter ve userın konum bilgileri gidip yeni plan hesabı gelcek
         if(this.selectedSolarPanel != null && this.selectedInverter != null) {
-            var newSolarPlan = {
-                inverter: this.selectedInverter.name,
-                solarPanel: this.selectedSolarPanel.name,
-                energyProduction: null,
-                estimatedProfit25Year: null,
-                carbonFootPrint: null,
-                panelEfficiency: this.selectedSolarPanel.efficiency,
-                cost: null
-            }
-            this.calculateFeasibilityStudy(newSolarPlan);
+            this.calculateFeasibilityStudy();
         }
         else{
             this.showError();
         }  
     }
 
-    calculateFeasibilityStudy(newSolarPlan) {
-        this.sendRequest(newSolarPlan);
+    calculateFeasibilityStudy() {
+        this.sendRequest();
 
     }
 
-    sendRequest(newSolarPlan) {
+    sendRequest() {
         //send query to pvgis with selected panel and inverter
         let panelEfficiency = this.selectedSolarPanel.efficiency;
         let inverterEfficiency = this.selectedInverter.efficiency;
@@ -199,35 +321,86 @@ export class SolarPlans extends Component {
             'peakpower=' + (this.state.freeSpace*panelEfficiency)/100 + '&' +
             'loss=' + systemLoss + '&' +
             'outputformat=' + 'json' + '&' +
-            'angle=' + this.state.angle;
+            'angle=' + this.state.roofAngle;
         //'aspect=' + obj.aspect;
 
         axios.get(url)
         .then((response) => {
             console.log(response);
             this.newFeasibilityStudy = response.data;
-            newSolarPlan.energyProduction = this.newFeasibilityStudy.outputs.totals.fixed.E_y;
-            newSolarPlan.carbonFootPrint = this.calculateCarbonFootPrint(this.newFeasibilityStudy);
-            newSolarPlan.estimatedProfit25Year = this.calculateSaving(this.newFeasibilityStudy);
-            newSolarPlan.cost = this.calculateSystemCost();
-            console.log(newSolarPlan);
-            this.state.solarPlans.push(newSolarPlan);
+            
+            this.newStudy = {
+                buildingId: this.state.dataTableSelection.roofId,
+                solarPanel: this.selectedSolarPanel.name,
+                inverter: this.selectedInverter.name,
+                estimatedProfit25Year: null,
+                panelEfficiency: this.selectedSolarPanel.efficiency,
+                cost: this.calculateSystemCost(),
+                carbonFootPrint: this.calculateCarbonFootPrint(this.state.averageConsumption*12),
+                freeSpace: this.state.freeSpace,
+                averageConsumption: this.state.averageConsumption,
+                energyProduction : this.newFeasibilityStudy.outputs.totals.fixed.E_y,
+                study : this.newFeasibilityStudy,
+                roofAngle: this.state.solarPlans[0].roofAngle
+              };
+
+            let monthlydata = [];
+            for(let i = 0; i < this.newFeasibilityStudy.outputs.monthly.fixed.length; i++) {
+            monthlydata.push(this.newFeasibilityStudy.outputs.monthly.fixed[i].E_m);
+            }
+            this.newStudy.estimatedProfit25Year = this.calculateSaving(this.state.freeSpace, monthlydata, this.state.averageConsumption);
+
+            console.log(this.newStudy);
+            this.state.solarPlans.push(this.newStudy);
+            axios
+            .post("/addFeasibilityStudy", this.newStudy)
+            .then((res) => {
+            })
+            .catch((err) => console.log(err));
         })
     }
 
-    calculateCarbonFootPrint(newFeasibilityStudy) {
-        return (newFeasibilityStudy.outputs.totals.fixed.E_y* 0.534) / 1000;
+    calculateCarbonFootPrint(annualConsumption) {
+        return (annualConsumption* 0.6) / 1000;
     }
 
-    calculateSaving(newFeasibilityStudy) {
-      //   let peakPower = (freeSpace*17)/100;
-     //   console.log(peakPower);
-        let systemCost = ((this.state.freeSpace*this.selectedSolarPanel.efficiency) / 100)*16000 + this.selectedInverter.price;
-        return (newFeasibilityStudy.outputs.totals.fixed.E_y* 0.5 * 25) - systemCost;
+    calculateSaving(freeSpace, monthlydata, averageConsumption) {
+        let peakPower = (freeSpace*17)/100;  //kaç kWh olduğunu gösterir
+        let systemCost = peakPower*9500; //1Kwh saat için kurulum ücreti ortalama her şey dahil 1500$
+        let balance = 0;
+        //first 15 year
+        let income15 = 0;
+        let i;
+        for(i = 0; i < 12; i++){
+            let diff = monthlydata[i] - averageConsumption;
+            if(diff > 0) {
+                income15 += diff * 0.31;
+                income15 += averageConsumption * 0.71;
+            }
+            else{
+                income15 += monthlydata[i] * 0.71;
+            }
+        }
+        balance += income15 * 15;
+        //last 10 year
+        let income10 = 0;
+        let j;
+        for(j = 0; j < 12; j++){
+            let diff = (monthlydata[j] * 0.85) - averageConsumption;
+            if(diff > 0) {
+                income10 += diff * 0.31;
+                income10 += averageConsumption * 0.71;
+            }
+            else{
+                income10 += monthlydata[j] * 0.71;
+            }
+        }
+        balance += income10 * 10;
+        return balance - systemCost;
     }
 
     calculateSystemCost() {
-        return ((this.state.freeSpace*this.selectedSolarPanel.efficiency) / 100)*16000 + this.selectedInverter.price;
+        return ((this.state.freeSpace*this.selectedSolarPanel.efficiency) / 100)*9500 + this.selectedInverter.price;
     }
 
     renderHeader() {
@@ -241,6 +414,21 @@ export class SolarPlans extends Component {
     componentDidMount() {
         this.getSolarPanels().then(data => this.setState({solarPanelData: data}));
         this.getInverter().then(data => this.setState({inverterData: data}));
+        let data;
+        axios
+        .get("/getRoof")
+        .then((res) => {
+            data = res.data;
+           // console.log(data);
+            var buildings = [];
+            for (let i = 0; i < data.length; i++) {
+            buildings.push(data[i]);
+            }
+            this.setState({
+            buildings: buildings,
+            });
+        })
+        .catch((err) => console.log(err));
     }
 
     dataViewInverterTemplate(inverter) {
@@ -274,9 +462,9 @@ export class SolarPlans extends Component {
                             </div>
                             <div className="p-col-6">
                                 <Button label="Detail" style={{width:'150px'}} onClick={(e) => this.op.toggle(e)} className="p-button-info"></Button>
-                                <OverlayPanel ref={(el) => this.op = el} id="overlay_panel" showCloseIcon={true} >
-                                        <img src={inverter.info}/>
-                                </OverlayPanel>
+                                    <OverlayPanel ref={(el) => this.op = el} id="overlay_panel" showCloseIcon={true}>
+                                            <img src={inverter.info}/>
+                                    </OverlayPanel>
                             </div>
                         </div>
                     </div> 
@@ -320,9 +508,9 @@ export class SolarPlans extends Component {
                             </div>
                             <div className="p-col-6">
                                 <Button label="Detail" style={{width:'150px'}} onClick={(e) => this.op1.toggle(e)} className="p-button-info"></Button>
-                                <OverlayPanel ref={(el) => this.op1 = el} id="overlay_panel" showCloseIcon={true} >
-                                        <img src={panel.info}/>
-                                </OverlayPanel>
+                                    <OverlayPanel ref={(el) => this.op1 = el} id="overlay_panel" showCloseIcon={true} >
+                                            <img src={panel.info}/>
+                                    </OverlayPanel>
                             </div>
                         </div>
                     </div> 
@@ -340,6 +528,49 @@ export class SolarPlans extends Component {
                 </div>
 
                 <div className="p-col-12 p-lg-12">
+                    <div className="p-col-12">
+                        <div className="card card-w-title">
+                            <h1>Your Registered Buildlings</h1>
+                            <DataTable
+                            value={this.state.buildings}
+                            paginatorPosition="bottom"
+                            selectionMode="single"
+                            header="Your Buildings"
+                            paginator={ true}
+                            rows={10}
+                            responsive={true}
+                            selection={this.state.dataTableSelection}
+                            onSelectionChange={(event) =>
+                                this.setState({ dataTableSelection: event.value })
+                            }
+                            >
+                            <Column
+                                field="buildingName"
+                                header="Building Name"
+                                sortable={false}
+                            />
+                            <Column
+                                field="buildingType"
+                                header="Building Type"
+                                sortable={false}
+                            />
+                            <Column field="address" header="Adress" sortable={false} />
+                            <Column field="roofArea" header="Roof Area" sortable={false} />
+                            </DataTable>
+                        </div>
+                        <div>
+                            <Button
+                                label="Select Building"
+                                onClick={this.selectBuilding}
+                                aria-controls="overlay_panel"
+                                aria-haspopup={true}
+                                style={{ width: "200px", height: "50px" }}
+                                className="p-button-success"
+                            />
+                        </div>
+                    </div>
+                    
+
                     <div className="datatable-solarPlans"> 
                             <DataTable ref={(el) => this.dt = el} value={this.state.solarPlans} header={header} selection={this.state.selectedSolarPlans} 
                                 onSelectionChange={e => this.setState({selectedSolarPlans: e.value})} emptyMessage="No solar plans found">
@@ -351,16 +582,46 @@ export class SolarPlans extends Component {
                                 <Column field="estimatedProfit25Year" header="Estimated Profit(25 Year)" body={this.estimatedProfit25YearBodyTemplate} sortable/>
                                 <Column field="panelEfficiency" header="Panel Efficiency (%)" body={this.panelEfficiencyBodyTemplate} sortable/>
                                 <Column field="cost" header="Cost" body={this.costBodyTemplate} sortable/>
-                                <Column field="index" body={this.actionBodyTemplate} headerStyle={{width: '8em', textAlign: 'center'}} bodyStyle={{textAlign: 'center', overflow: 'visible'}} />
                             </DataTable>
                         </div>
                     <div className="p-vertical">
+                        <div>
                             <div className="p-col-12" style={{textAlign:'left'}}>
-                                <Button label="Compare Solar Plans" style={{width:'250px'}} className="p-button-success" />
-                            </div>
-                            <div className="p-col">
-                                <Messages ref={(el) => this.messages = el} />
-                                <Button label="Add New Solar Plan" onClick={this.addNewSolarPlan} className="p-button-success" style={{width:'250px'}}/>
+                                    <Button label="Get Plan Detail" style={{width:'150px'}} aria-controls="overlay_panel1" style={{width:'250px'}} onClick={this.getSolarPlanDetail} className="p-button-info"></Button>
+                                    {this.state.isPlanSelected && (
+                                    <div className="panelScreen">
+                                    <OverlayPanel
+                                        ref={(el) => (this.op2 = el)}
+                                        showCloseIcon={true} id="overlay_panel1"
+                                    >   
+                                        <FeasbilityCard
+                                        newStudy={this.selectedSolarPlan}
+                                        />
+                                    </OverlayPanel>
+                                    </div>
+                                )}
+                                </div>
+                                
+                                <div className="p-col-12" style={{textAlign:'left'}}>
+                                    <Button label="Compare Solar Plans" style={{width:'250px'}} className="p-button-success" onClick={this.compareSolarPlans}/>
+                                    {this.state.isCompareSelected && (
+                                        <div className="panelScreen">
+                                        <OverlayPanel
+                                            ref={(el) => (this.op3 = el)}
+                                            showCloseIcon={true} id="overlay_panel2"
+                                        >   
+                                        <CompareCard
+                                            comparedPlans={this.comparedPlans}
+                                        />
+                                            
+                                        </OverlayPanel>
+                                        </div>
+                                )}
+                                </div>
+                                <div className="p-col">
+                                    <Messages ref={(el) => this.messages = el} />
+                                    <Button label="Add New Solar Plan" onClick={this.addNewSolarPlan} className="p-button-success" style={{width:'250px'}}/>
+                                </div>
                             </div>
                         </div>
                             <div className="p-col-12">
