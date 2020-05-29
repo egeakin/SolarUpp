@@ -14,7 +14,7 @@ import { MenusDemo } from "./components/MenusDemo";
 import { MessagesDemo } from "./components/MessagesDemo";
 import { ChartsDemo } from "./components/ChartsDemo";
 import { MiscDemo } from "./components/MiscDemo";
-import { EmptyPage } from "./components/EmptyPage";
+import { MaintenancePage } from "./components/MaintenancePage";
 import { Documentation } from "./components/Documentation";
 import { Feasibility } from "./components/Feasibility";
 import { SolarPlans } from "./components/SolarPlans";
@@ -198,9 +198,9 @@ class App extends Component {
         icon: "pi pi-fw pi-file",
         items: [
           {
-            label: "Empty Page",
+            label: "Maintenance Page",
             icon: "pi pi-fw pi-circle-off",
-            to: "/empty",
+            to: "/maintenance",
           },
           {
             label: "Find Address",
@@ -362,7 +362,7 @@ class App extends Component {
               <Route path="/messages" component={MessagesDemo} />
               <Route path="/charts" component={ChartsDemo} />
               <Route path="/misc" component={MiscDemo} />
-              <Route path="/empty" component={EmptyPage} />
+              <Route path="/maintenance" component={MaintenancePage} />
               <Route path="/feasibility" component={Feasibility} />
               <Route path="/solarPlans" component={SolarPlans} />
               <Route path="/documentation" component={Documentation} />

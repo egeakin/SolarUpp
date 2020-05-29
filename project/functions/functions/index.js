@@ -39,6 +39,9 @@ const {
   getSystem,
   deleteSystem,
   getUserSystems,
+  addGeneration,
+  getSystemGenerations,
+  getUserGenerations,
 } = require("./handlers/maintenance");
 
 const { sendMail } = require("./handlers/emails");
@@ -72,6 +75,9 @@ app.post("/addSystem", FBAuth, addSystem);
 app.get("/existingSystems/:existingSystemsId", FBAuth, getSystem);
 app.delete("/existingSystems/:existingSystemsId", FBAuth, deleteSystem);
 app.get("/existingSystems", FBAuth, getUserSystems);
+app.post("/addGeneration/:existingSystemId", FBAuth, addGeneration);
+app.get("/generation/:existingSystemId", FBAuth, getSystemGenerations);
+app.get("/generation", FBAuth, getUserGenerations)
 
 // roof routes
 app.post("/addRoof", FBAuth, addRoof);

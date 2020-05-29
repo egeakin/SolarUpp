@@ -34,8 +34,9 @@ export class AddSystemPage extends Component {
     }
 
     saveChanges = (e) => {
-        if (this.state.sysName.trim() === '' || !isFinite(this.state.numPanels) || !isFinite(this.state.panelCap) || !isFinite(this.state.inverterSize) || this.state.address.trim() === '' || !isFinite(this.state.postalCode) || !isFinite(this.state.panelAngle)) {
+        if (this.state.sysName.trim() === '' || !isFinite(this.state.numPanels) || !isFinite(this.state.panelCap) || !isFinite(this.state.inverterSize) || this.state.address.trim() === '' || !isFinite(this.state.postalCode) || !(isFinite(this.state.panelAngle) || this.state.dynamicAngle)) {
             this.showError();
+            return;
         }
 
         let systemInfo = {
@@ -47,7 +48,7 @@ export class AddSystemPage extends Component {
             panelCap: this.state.panelCap,
             postalCode: this.state.postalCode,
             systemSize: this.state.sysSize,
-            age: this.state.sysAge,
+            age: this.state.age,
             dynamicAngle: this.state.dynamicAngle,
         };
 
@@ -96,7 +97,7 @@ export class AddSystemPage extends Component {
                         <div className="p-col-12 p-md-6">
                             <label>Age of the system:</label>
                         </div>
-                        <InputText value={this.state.sysAge} onChange={(e) => this.setState({sysAge: e.target.value})} />
+                        <InputText value={this.state.age} onChange={(e) => this.setState({age: e.target.value})} />
                         <div className="p-col-12 p-md-6">
                             <label>Address:</label>
                         </div>

@@ -36,7 +36,7 @@ exports.addSystem = (request, response) => {
       response.json(resSystem);
     })
     .catch((err) => {
-      response.status(500).json({ error: "something went wrong" });
+      return response.status(500).json({ error: "something went wrong" });
       console.log(request);
       console.error(err);
     });
@@ -62,7 +62,7 @@ exports.getSystem = (request, response) => {
     })
     .catch(err => {
       console.error(err);
-      response.status(500).json({ error: err.code });
+      return response.status(500).json({ error: err.code });
     });
 };
 
@@ -92,8 +92,7 @@ exports.deleteSystem = (request, response) => {
 
 exports.getUserSystems = (request, response) => {
   db.collection("existingSystems")
-    .where("userHandle", "===", request.user.handle)
-    .orderBy("createdAt", "systemSize")
+    .where("userHandle", "==", request.user.handle)
     .get()
     .then(data => {
       let systems = [];
@@ -107,6 +106,7 @@ exports.getUserSystems = (request, response) => {
           name: doc.data().name,
           panelCap: doc.data().panelCap,
           panelAngle: doc.data().panelAngle,
+          numPanels: doc.data().numPanels,
           postalCode: doc.data().postalCode,
           systemSize: doc.data().systemSize,
           age: doc.data().age,
@@ -117,7 +117,141 @@ exports.getUserSystems = (request, response) => {
     })
     .catch(err => {
       console.error(err);
-      response.status(500).json({ error: err.code });
+      console.log(data);
+      console.log(systems);
+      return response.status(500).json({ error: err.code });
     });
 
+}
+
+exports.addGeneration = (request, response) => {
+  console.log(request.body);
+  var currentTime = new Date();
+  var currentYear = currentTime.getFullYear();
+  var generated = request.body.generated;
+
+  if (!isFinite(request.body.generated)) {
+      generated = parseInt(generated);
+  }
+
+  if (request.body.systemId.trim() === '' || request.body.date.trim() === '' || !isFinite(generated)) {
+      return response.status(400).json({ error: "Invalid arguments"});
+  }
+  else if (generated < 0) {  //|| !(request.body.date instanceof String)
+      return response.status(401).json({ error: "Invalid arguments"});
+  }
+  else if (request.body.date.length != 8 || !isFinite(parseInt(request.body.date.substring(0,4))) || !isFinite(parseInt(request.body.date.substring(4,6))) || !isFinite(parseInt(request.body.date.substring(6,8)))) {
+      return response.status(402).json({ error: "Invalid arguments"});
+  }
+  else if (parseInt(request.body.date.substring(0,4)) > currentYear || parseInt(request.body.date.substring(0,4)) < 2000 || parseInt(request.body.date.substring(4,6)) > 12 || parseInt(request.body.date.substring(4,6)) < 1 || parseInt(request.body.date.substring(6,8)) > 31 || parseInt(request.body.date.substring(6,8)) < 1) {
+      return response.status(403).json({ error: "Invalid arguments"});
+  }
+
+  db.collection("generation")
+    .where("userHandle", "==", request.user.handle)
+    .where("systemId", "==", request.body.systemId)
+    .where("date", "==", request.body.date)
+    .get()
+    .then(data => {
+      data.forEach(doc => {
+        const document = db.doc(`/generation/${doc.generationId}`);
+        document
+          .get()
+          .then(doc2 => {
+            if (!doc2.exists) {
+              return response.status(500).json({ error: "Something went wrong" });
+            }
+            if (doc2.data().userHandle !== request.user.handle) {
+              return response.status(500).json({ error: "Something went wrong" });
+            } 
+            else {
+              document.delete();
+            }
+          })
+          .catch(err => {
+            console.error(err);
+            return response.status(500).json({ error: err.code });
+          });
+        });
+    })
+    .catch(err => {
+      console.error(err);
+      console.log(data);
+      console.log(systems);
+      return response.status(500).json({ error: err.code });
+    });
+
+  const newGeneration = {
+      userHandle: request.user.handle,
+      createdAt: new Date().toISOString(),
+      date: request.body.date,
+      systemId: request.body.systemId,
+      generated: generated,
+  };
+
+  db.collection("generation")
+  .add(newGeneration)
+  .then((doc) => {
+    const resGeneration = newGeneration;
+    resGeneration.generationId = doc.id;
+    return response.json(resGeneration);
+  })
+  .catch((err) => {
+    console.log(request);
+    console.error(err);
+    return response.status(500).json({ error: "something went wrong" });
+  });
+}
+
+exports.getSystemGenerations = (request, response) => {
+  db.collection("generation")
+    .where("userHandle", "==", request.user.handle)
+    .where("systemId", "==", request.body.systemId)
+    .get()
+    .then(data => {
+      let generations = [];
+      data.forEach(doc => {
+        generations.push({
+          generationId: doc.id,
+          userHandle: doc.data().userHandle,
+          createdAt: doc.data().createdAt,
+          generated: doc.data().generated,
+          date: doc.data().date,
+          systemId: doc.data().systemId,
+        });
+      });
+      return response.json(generations);
+    })
+    .catch(err => {
+      console.error(err);
+      console.log(data);
+      console.log(generations);
+      return response.status(500).json({ error: err.code });
+    });
+}
+
+exports.getUserGenerations = (request, response) => {
+  db.collection("generation")
+    .where("userHandle", "==", request.user.handle)
+    .get()
+    .then(data => {
+      let generations = [];
+      data.forEach(doc => {
+        generations.push({
+          generationId: doc.id,
+          userHandle: doc.data().userHandle,
+          createdAt: doc.data().createdAt,
+          generated: doc.data().generated,
+          systemId: doc.data().systemId,
+          date: doc.data().date,
+        });
+      });
+      return response.json(generations);
+    })
+    .catch(err => {
+      console.error(err);
+      console.log(data);
+      console.log(generations);
+      return response.status(500).json({ error: err.code });
+    });
 }
