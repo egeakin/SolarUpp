@@ -9,6 +9,7 @@ import { Messages } from "primereact/messages";
 import { OverlayPanel } from "primereact/overlaypanel";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
+import { Chart } from "primereact/chart";
 import FeasbilityCard from "./FeasbilityCard.js";
 import "./centerPanel.scss";
 import axios from "axios";
@@ -18,29 +19,32 @@ import Image from "image-js";
 export class Feasibility extends Component {
   constructor() {
     var newFeasibilityStudy;
+    var newStudy;
     super();
     this.state = {
       checkboxValue: [],
       rangeValues: [0, 60],
       width: null,
       height: null,
-      freeSpace: 100,
+      freeSpace: null,
       occupiedSpace: null,
       buildingFacade: null,
+      buildingName: null,
       latitude: null,
       longitude: null,
       buildingType: null,
-      roofAngle: null,
+      roofAngle: 35,
       roofMaterials: [],
       roofImage: null,
       edgeDetectionImage: null,
-      selectBuilding: null,
+      screenPositions: [],
+      chart: null,
       feasibilityStudy: null,
       isResponseFetched: false,
       averageConsumption: 830,
       selectedBuilding: null,
       buildings: [
-        {
+        /*{
           buildingName: "Ev1",
           buildingType: "House",
           address: "angora evleri 51",
@@ -51,7 +55,7 @@ export class Feasibility extends Component {
           buildingType: "Office",
           address: "Cyberpark Tepe Binase",
           freeSpace: "88",
-        },
+        },*/
       ],
     };
 
@@ -60,6 +64,12 @@ export class Feasibility extends Component {
     this.selectBuilding = this.selectBuilding.bind(this);
     this.onChangeRangeSlider = this.onChangeRangeSlider.bind(this);
     this.onCheckboxChange = this.onCheckboxChange.bind(this);
+    this.roofAreaBodyTemplate = this.roofAreaBodyTemplate.bind(this);
+  }
+
+  roofAreaBodyTemplate(rowData) {
+    let roofArea = rowData.roofArea.toFixed(2)
+    return <span >{roofArea} m<sup>2</sup></span>;
   }
 
   calculateFeasibility(event) {
@@ -124,19 +134,42 @@ export class Feasibility extends Component {
     this.op1.toggle(event);
   }
 
+  
+
   printFeasbilityStudy(res) {
     this.newFeasibilityStudy = res.data;
-    console.log(this.newFeasibilityStudy);
 
-    let newStudy = {
-      buildingId: "7G2wC6Ih3TUy17hxD3vi",
-      study : this.newFeasibilityStudy
+    //calculate saving çağır
+    let monthlydata = [];
+    let i;
+    for(i = 0; i < this.newFeasibilityStudy.outputs.monthly.fixed.length; i++) {
+      monthlydata.push(this.newFeasibilityStudy.outputs.monthly.fixed[i].E_m);
+    }
+    let estimatedProfit25Year = this.calculateSaving(this.state.freeSpace, monthlydata, this.state.averageConsumption);
+    //carbon foot print cağır
+    let carbonFootPrint = this.calculateCarbonFootPrint(this.state.averageConsumption*12);
+    //calculate system cost
+    let systemCost = ((this.state.freeSpace * 17) / 100 ) * 9500;
+
+      this.newStudy = {
+      buildingId: this.state.dataTableSelection.roofId,
+      solarPanel: "Default",
+      inverter: "Default",
+      estimatedProfit25Year: estimatedProfit25Year,
+      panelEfficiency: 17,
+      cost: systemCost,
+      carbonFootPrint: carbonFootPrint,
+      freeSpace: this.state.freeSpace,
+      averageConsumption: this.state.averageConsumption,
+      energyProduction : this.newFeasibilityStudy.outputs.totals.fixed.E_y,
+      study : this.newFeasibilityStudy,
+      roofAngle: this.state.roofAngle,
+      averageConsumption: this.state.averageConsumption
     };
 
     axios
-      .post("/addFeasibilityStudy", newStudy)
+      .post("/addFeasibilityStudy", this.newStudy)
       .then((res) => {
-        console.log(res);
       })
       .catch((err) => console.log(err));
 
@@ -147,11 +180,50 @@ export class Feasibility extends Component {
     });
   }
 
+  calculateSaving(freeSpace, monthlydata, averageConsumption) {
+    let peakPower = (freeSpace*17)/100;  //kaç kWh olduğunu gösterir
+    let systemCost = peakPower*9500; //1Kwh saat için kurulum ücreti ortalama her şey dahil 1500$
+    let balance = 0;
+    //first 15 year
+    let income15 = 0;
+    let i;
+    for(i = 0; i < 12; i++){
+        let diff = monthlydata[i] - averageConsumption;
+        if(diff > 0) {
+            income15 += diff * 0.31;
+            income15 += averageConsumption * 0.71;
+        }
+        else{
+            income15 += monthlydata[i] * 0.71;
+        }
+    }
+    balance += income15 * 15;
+    //last 10 year
+    let income10 = 0;
+    let j;
+    for(j = 0; j < 12; j++){
+        let diff = (monthlydata[j] * 0.85) - averageConsumption;
+        if(diff > 0) {
+            income10 += diff * 0.31;
+            income10 += averageConsumption * 0.71;
+        }
+        else{
+            income10 += monthlydata[j] * 0.71;
+        }
+    }
+    balance += income10 * 10;
+    return balance - systemCost;
+}
+
+calculateCarbonFootPrint(annualConsumption) {
+    return (annualConsumption* 0.534) / 1000;
+}
+
   restoreToDefaultValues() {
     this.messages.show({
       severity: "info",
       summary: "Info Message",
-      detail: "Default values Restored",
+      detail: "Changes are saved",
     });
     //this.setState({width: 30, height: 20, freeSpace: '450m^2', occupiedSpace: '150m^2', buildingFacade: 'South', latitude: 45, longitude: 8, buildingType: 'House'});
   }
@@ -170,9 +242,57 @@ export class Feasibility extends Component {
     this.setState({ roofAngle: e.value });
   }
 
-  selectBuilding() {
-    console.log(this.state.selectedBuilding);
-  } 
+  selectBuilding(event) {
+    console.log(this.state.dataTableSelection);
+
+    this.setState({
+      buildingName: this.state.dataTableSelection.buildingName,
+      roofArea: this.state.dataTableSelection.roofArea,
+      latitude: this.state.dataTableSelection.roofCoordinates[0].y,
+      longitude: this.state.dataTableSelection.roofCoordinates[0].x,
+      buildingType: this.state.dataTableSelection.buildingType,
+      roofImage: this.state.dataTableSelection.roofImage,
+      screenPositions: this.state.dataTableSelection.screenPositions,
+      buildingId: this.state.dataTableSelection.roofId
+    });
+
+    //console.log(this.state.roofImage);
+    Image.load(this.state.dataTableSelection.roofImage)
+      .then((img) => {
+        img = img.crop({
+          x: this.state.screenPositions["x"],
+          y: this.state.screenPositions["y"],
+          width: this.state.screenPositions["width"],
+          height: this.state.screenPositions["height"],
+        });
+        const grey = img.grey();
+        const edge = cannyEdgeDetector(grey);
+        this.setState({
+          roofImage: img.toDataURL(),
+          edgeDetectionImage: edge.toDataURL(),
+        });
+        console.log(edge);
+        this.setState({
+          freeSpace: (edge.histogram[0] / edge.size) * this.state.roofArea,
+          occupiedSpace:
+            (edge.histogram[255] / edge.size) * this.state.roofArea,
+        });
+        this.setState({
+          charts: {
+            labels: ["FreeSpace", "Occupied Space"],
+            datasets: [
+              {
+                data: [this.state.freeSpace, this.state.occupiedSpace],
+                backgroundColor: ["green", "red"],
+                hoverBackgroundColor: ["green", "red"],
+              },
+            ],
+          },
+        });
+      })
+      .catch((err) => console.log(err));
+    console.log(333);
+  }
 
   componentDidMount() {
     let data;
@@ -180,26 +300,14 @@ export class Feasibility extends Component {
       .get("/getRoof")
       .then((res) => {
         data = res.data;
+        console.log(data);
+        var buildings = [];
+        for (let i = 0; i < data.length; i++) {
+          buildings.push(data[i]);
+        }
         this.setState({
-          freeSpace: data[0].roofArea,
-          occupiedSpace: "150",
-          latitude: data[0].roofCoordinates[0]["x"],
-          longitude: data[0].roofCoordinates[0]["y"],
-          buildingType: data[0].buildingType,
-          roofImage: data[0].roofImage,
+          buildings: buildings,
         });
-
-        Image.load(this.state.roofImage)
-          .then((img) => {
-            const grey = img.grey();
-            const edge = cannyEdgeDetector(grey).toDataURL();
-            this.setState({
-              edgeDetectionImage: edge,
-            });
-            console.log(222);
-          })
-          .catch((err) => console.log(err));
-        console.log(333);
       })
       .catch((err) => console.log(err));
   }
@@ -208,21 +316,39 @@ export class Feasibility extends Component {
     return (
       <div className="p-grid">
         <div className="p-col-12">
-            <div className="card">
-              <h1>Calculate Your Solar Potential</h1>
-              <p>Enter required information to have solar feasibility study.</p>
-            </div>
-            <div className="card card-w-title">
-              <h1>Your Registered Buildlings</h1>
-              <DataTable ref={(el) => this.dt = el} value={this.state.buildings} selection={this.state.selectedBuilding} responsive={true}
-                  onSelectionChange={e => this.setState({selectedBuilding: e.value})} emptyMessage="No buildings found">
-                <Column selectionMode="single" style={{width:'3em'}}/>
-                <Column field="buildingName" header="Building Name" sortable={false}/>
-                <Column field="buildingType" header="Building Type" sortable={false}/>
-                <Column field="address" header="Adress" sortable={false}/>
-                <Column field="freeSpace" header="Free Space" sortable={false}/>
-              </DataTable>
-            </div>
+          <div className="card">
+            <h1>Calculate Your Solar Potential</h1>
+            <h3><b>Enter required information to have solar feasibility study.</b></h3>
+          </div>
+          <div className="card card-w-title">
+            <h1>Your Registered Buildlings</h1>
+            <DataTable
+              value={this.state.buildings}
+              paginatorPosition="bottom"
+              selectionMode="single"
+              header="Your Buildings"
+              paginator={true}
+              rows={10}
+              responsive={true}
+              selection={this.state.dataTableSelection}
+              onSelectionChange={(event) =>
+                this.setState({ dataTableSelection: event.value })
+              }
+            >
+              <Column
+                field="buildingName"
+                header="Building Name"
+                sortable={false}
+              />
+              <Column
+                field="buildingType"
+                header="Building Type"
+                sortable={false}
+              />
+              <Column field="address" header="Adress" sortable={false} />
+              <Column field="roofArea" header="Roof Area" body={this.roofAreaBodyTemplate} sortable={false} />
+            </DataTable>
+          </div>
           <Button
             label="Select Building"
             onClick={this.selectBuilding}
@@ -329,7 +455,7 @@ export class Feasibility extends Component {
             </div>
             <div className="p-col-12 p-lg-8">
               <div className="card card-w-title" style={{ height: "350px" }}>
-                <h1>Roof Angel</h1>
+                <h1>Roof Angle</h1>
                 <div className="p-vertical">
                   <div className="p-cl-12">
                     <h3>
@@ -377,17 +503,12 @@ export class Feasibility extends Component {
           </div>
         </div>
         <div className="p-col-12 p-lg-6">
-          <div className="card card-w-title" style={{ height: "500px" }}>
-            <h1>Your Roof</h1>
+          <div className="card card-w-title" style={{ height: "400px" }}>
+            <h1>Your Roof - {this.state.buildingName}</h1>
             <div className="p-col-12 p-md-6">
               <img
                 src={this.state.roofImage}
-                width="650"
-                height="320"
-                alt="roof1"
-              />
-              <img
-                src={this.state.edgeDetectionImage}
+                className="card card-w-title p-fluid"
                 width="650"
                 height="320"
                 alt="roof1"
@@ -395,15 +516,16 @@ export class Feasibility extends Component {
             </div>
           </div>
         </div>
+
         <div className="p-col-12 p-lg-6">
-          <div className="card card-w-title" style={{ height: "500px" }}>
+          <div className="card card-w-title" style={{ height: "400px" }}>
             <h1>Building Properties</h1>
             <div className="p-col-12">
               <div className="p-grid">
                 <div className="p-col-6">
                   <div className="p-grid">
                     <div className="p-col-6">
-                      <label htmlFor="freeSpace">Free Space: </label>
+                      <label htmlFor="freeSpace">Free Space m<sup>2</sup>: </label>
                     </div>
                     <div className="p-col-6">
                       <InputText
@@ -419,7 +541,7 @@ export class Feasibility extends Component {
                   </div>
                   <div className="p-grid">
                     <div className="p-col-6">
-                      <label htmlFor="occupiedSpace">Occupied Space: </label>
+                      <label htmlFor="occupiedSpace">Occupied Space m<sup>2</sup>: </label>
                     </div>
                     <div className="p-col-6">
                       <InputText
@@ -529,7 +651,7 @@ export class Feasibility extends Component {
                       <Messages ref={(el) => (this.messages = el)} />
                       <Button
                         onClick={this.restoreToDefaultValues}
-                        label="Restore to default values"
+                        label="Save changes"
                         className="p-button-info"
                         style={{ width: "200px", height: "50px" }}
                       />
@@ -551,9 +673,7 @@ export class Feasibility extends Component {
                             showCloseIcon={true}
                           >
                             <FeasbilityCard
-                              feasbilityInfo={this.newFeasibilityStudy}
-                              freeSpace={this.state.freeSpace}
-                              averageConsumption={this.state.averageConsumption}
+                              newStudy={this.newStudy}
                             />
                           </OverlayPanel>
                         </div>
@@ -563,6 +683,26 @@ export class Feasibility extends Component {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+        <div className="p-col-12 p-lg-6">
+          <div className="card card-w-title" style={{ height: "400px" }}>
+            <h1>Your Detected Edges On The Roof</h1>
+            <div className="p-col-12 p-md-6">
+              <img
+                src={this.state.edgeDetectionImage}
+                className="card card-w-title p-fluid"
+                width="650"
+                height="320"
+                alt="roof1"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="p-col-12 p-lg-6">
+          <div className="card card-w-title" style={{ height: "400px" }}>
+            <h1> Free Space vs Occupied Space</h1>
+            <Chart type="pie" data={this.state.charts} />
           </div>
         </div>
       </div>

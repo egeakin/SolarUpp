@@ -18,6 +18,8 @@ exports.addRoof = (request, response) => {
     buildingType: request.body.buildingType,
     buildingName: request.body.buildingName,
     roofImage: "",
+    screenPositions: request.body.screenPositions,
+    address: request.body.address,
   };
 
   db.collection("roofs")
@@ -57,6 +59,8 @@ exports.getUserRoofs = (request, response) => {
             buildingType: doc.data().buildingType,
             buildingName: doc.data().buildingName,
             roofImage: doc.data().roofImage,
+            screenPositions: doc.data().screenPositions,
+            address: doc.data().address,
           });
         }
       });

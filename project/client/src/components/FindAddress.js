@@ -64,6 +64,7 @@ import { Toolbar } from "primereact/toolbar";
 import PropTypes from "prop-types";
 import html2canvas from "html2canvas";
 import GoogleMapReact from "google-map-react";
+import Geocode from "react-geocode";
 import {
   withScriptjs,
   withGoogleMap,
@@ -77,8 +78,11 @@ import { SphericalUtil, PolyUtil } from "node-geometry-library";
 // redux
 import { connect } from "react-redux";
 import axios from "axios";
+
+//Setting API Keys
 Ion.defaultAccessToken =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJiOTNjYjIwOC00YmQxLTRiZTAtYTFlNi03MjQ1NWMzMmE1YjkiLCJpZCI6MTkyMTIsInNjb3BlcyI6WyJhc3IiLCJnYyJdLCJpYXQiOjE1ODkyOTM3NTZ9.Rx7wwt26JrRXp_upYCawvQDurrHOIn2ddb109kXNv5k";
+Geocode.setApiKey("AIzaSyDx2GbulfV8GnINcVkKTI0cvtt-ZgPKlbE");
 
 const styles = {
   card: {
@@ -167,6 +171,7 @@ export class FindAddress extends Component {
       cartesian3dPositionsY: [],
       canDrawLine: false,
       google: this.props,
+      address: null,
       userData: {
         type: null,
         properties: {
@@ -192,6 +197,7 @@ export class FindAddress extends Component {
       selectedType: null,
       roofLatitude: 0.0,
       roofLongitude: 0.0,
+      selectedRoofAddress: null,
       edge: null,
       types: [
         { label: "Suburban Estate", value: "Suburban Estate" },
@@ -280,6 +286,25 @@ export class FindAddress extends Component {
       latitude: position.coords.latitude,
       longitude: position.coords.longitude,
     });
+
+    Geocode.fromLatLng(
+      this.state.latitude.toString(),
+      this.state.longitude.toString()
+    ).then(
+      (response) => {
+        console.log(response.results);
+        let temp_address =
+          response.results[response.results.length - 3].formatted_address;
+        this.setState({
+          address: temp_address,
+        });
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
+
+    console.log(this.state.address);
   }
 
   error() {
@@ -393,15 +418,28 @@ export class FindAddress extends Component {
         this.state.pointPositions[0].y,
         0
       );
-      // this.state.area = this.polygonArea(
-      //   this.state.pointPositionsX,
-      //   this.state.pointPositionsY,
-      //   this.state.pointPositions.length
-      // );
+
       this.convertGoogleFormat(); //This calculates this.state.area
       console.log(this.state.area);
-      this.state.roofLatitude = this.state.pointPositions[0].x;
-      this.state.roofLongitude = this.state.pointPositions[0].y;
+      this.state.roofLatitude = this.state.pointPositions[0].y;
+      this.state.roofLongitude = this.state.pointPositions[0].x;
+
+      //Calculating the address of selected roof
+      Geocode.fromLatLng(
+        this.state.roofLatitude.toString(),
+        this.state.roofLongitude.toString()
+      ).then(
+        (response) => {
+          let temp_address = response.results[0].formatted_address;
+          console.log(temp_address);
+          this.setState({
+            selectedRoofAddress: temp_address,
+          });
+        },
+        (error) => {
+          console.error(error);
+        }
+      );
 
       this.viewer.render();
       this.state.roofImage = this.viewer.canvas.toDataURL();
@@ -460,12 +498,44 @@ export class FindAddress extends Component {
     var formData = new FormData(document.forms[0]);
     formData.append("canvasImage", blob);
 
+    var ymax = this.state.screenPositions[0].y;
+    var ymin = this.state.screenPositions[0].y;
+
+    var xmax = this.state.screenPositions[0].x;
+    var xmin = this.state.screenPositions[0].x;
+
+    for (var i = 1; i < this.state.screenPositions.length; i++) {
+      if (this.state.screenPositions[i].y < ymin) {
+        ymin = this.state.screenPositions[i].y;
+      }
+      if (this.state.screenPositions[i].y > ymax) {
+        ymax = this.state.screenPositions[i].y;
+      }
+      if (this.state.screenPositions[i].x < xmin) {
+        xmin = this.state.screenPositions[i].x;
+      }
+      if (this.state.screenPositions[i].x > xmax) {
+        xmax = this.state.screenPositions[i].x;
+      }
+    }
+
+    var positions = {
+      x: xmin,
+      y: ymin,
+      width: xmax - xmin,
+      height: ymax - ymin,
+    };
+
+    console.log(positions);
+
     let roofInfo = {
       roofCoordinates: this.state.pointPositions,
       roofCircumference: this.state.circumference,
       roofArea: this.state.area,
       buildingName: this.state.buildingName,
       buildingType: this.state.selectedType,
+      screenPositions: positions,
+      address: this.state.selectedRoofAddress,
     };
 
     console.log(roofInfo);
@@ -530,8 +600,8 @@ export class FindAddress extends Component {
           <div className="p-col-12 p-lg-4">
             <div className="card summary">
               <span className="title">Your Address</span>
-              <span className="detail">Turkey</span>
-              <span className="count revenue">Ankara</span>
+              <span className="detail">State/Country</span>
+              <span className="count revenue">{this.state.address}</span>
             </div>
           </div>
         </div>
