@@ -262,6 +262,7 @@ export class MaintenancePage extends Component {
   }
   render() {
     return (
+      <div>
         <div className="p-grid p-fluid">
           <div className="p-col-12 p-lg-12">
             <div className="card">
