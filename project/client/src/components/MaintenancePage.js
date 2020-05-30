@@ -7,6 +7,7 @@ import { CarService } from "../service/CarService";
 import { Messages } from "primereact/messages";
 import { Button } from "primereact/button";
 import { CSVReader } from "react-papaparse";
+import {Dialog} from 'primereact/dialog';
 import {
   Viewer,
   Entity,
@@ -20,13 +21,8 @@ import {
   CustomDataSource,
 } from "resium";
 import { Cartesian3, createWorldTerrain, Color } from "cesium";
-import {
-    Charts,
-    ChartContainer,
-    ChartRow,
-    YAxis,
-    LineChart
-} from "react-timeseries-charts";
+import { LineChart, PieChart } from 'react-chartkick'
+import 'chart.js'
 
 const buttonRef = React.createRef();
 
@@ -109,8 +105,32 @@ export class MaintenancePage extends Component {
         clearInterval(this.interval);
     }
 
+    onDeleteSystemClick() {
+        this.setState({displayDialog: true});
+    }
+
+    onHideDialog() {
+        this.setState({displayDialog: false});
+    }
+
+    deleteSystem() {
+        if (this.state.selectedSystem === null) {
+            this.showError();
+            return;
+        }
+        axios
+        .delete("/existingSystems/" + this.state.selectedSystem.existingSystemsId)
+        .then((res) => {
+            console.log(res);
+            this.componentDidMount();
+        })
+        .catch((err) => console.log(err));
+        this.setState({displayDialog: false});
+    }
+
     componentDidMount() {
         var chart_data = [];
+        var systemIndex = [];
 
         axios
             .get("/existingSystems")
@@ -125,28 +145,31 @@ export class MaintenancePage extends Component {
                     //toAppend.name = this.state.systems[i].name;
                     //toAppend.data = {};
                     chart_data.push({name: item.name, data: {}});
+                    systemIndex.push(item.existingSystemsId);
                 }
+                console.log(systemIndex);
             })
-            .catch((err) => { this.showError(); console.log(err) });
+            .then(() => {
+                axios
+                .get("/generation")
+                .then((response) => {
+                    console.log(response);
+                    console.log(chart_data);
+                    this.setState({ generations: response.data});
 
-        
+                    this.state.generations.forEach(fillChart);
 
-        axios
-            .get("/generation")
-            .then((response) => {
-                console.log(response);
-                console.log(chart_data);
-                this.setState({ generations: response.data});
-
-                this.state.generations.forEach(fillChart);
-
-                function fillChart(item, index) {
-                    for (var i = 0; i < chart_data.length; i++) {
-                        if (chart_data[i]["name"] == item.name) {
-                            chart_data[i]["data"][item.date.substring(0,4) + "-" + item.date.substring(4,6) + "-" + item.date.substring(6,8)] = item.generated;
+                    function fillChart(item, index) {
+                        for (var i = 0; i < chart_data.length; i++) {
+                            if (systemIndex[i] == item["systemId"]) {
+                                chart_data[i]["data"][item["date"].substring(0,4) + "-" + item["date"].substring(4,6) + "-" + item["date"].substring(6,8)] = item["generated"];
+                            }
                         }
                     }
-                }
+
+                    console.log(chart_data);
+                }) 
+                .catch((err) => { this.showError(); console.log(err) });
             })
             .catch((err) => { this.showError(); console.log(err) });
 
@@ -183,111 +206,6 @@ export class MaintenancePage extends Component {
             buttonRef.current.open(e)
         }
     }
-  
-
-  getCoordinates(position) {
-    this.setState({
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude,
-      notification: "",
-    });
-    let api = `http://api.openweathermap.org/data/2.5/forecast?lat=${this.state.latitude}&lon=${this.state.longitude}&appid=${key}`;
-    console.log(this.state.latitude);
-    console.log(this.state.longitude);
-    console.log(
-      `http://api.openweathermap.org/data/2.5/forecast?lat=${this.state.latitude}&lon=${this.state.longitude}&appid=${key}`
-    );
-    fetch(api)
-      .then((response) => {
-        let data = response.json();
-        console.log(data);
-        return data;
-      })
-      .then((data) => {
-        this.setState({
-          temperature: [
-            Math.floor(data.list[0].main.temp - KELVIN),
-            Math.floor(data.list[8].main.temp - KELVIN),
-            Math.floor(data.list[16].main.temp - KELVIN),
-            Math.floor(data.list[24].main.temp - KELVIN),
-            Math.floor(data.list[32].main.temp - KELVIN),
-          ],
-          description: [
-            data.list[0].weather[0].description,
-            data.list[8].weather[0].description,
-            data.list[16].weather[0].description,
-            data.list[24].weather[0].description,
-            data.list[32].weather[0].description,
-          ],
-          iconId: [
-            `assets/layout/WeatherIcons/${data.list[0].weather[0].icon}.png`,
-            `assets/layout/WeatherIcons/${data.list[8].weather[0].icon}.png`,
-            `assets/layout/WeatherIcons/${data.list[16].weather[0].icon}.png`,
-            `assets/layout/WeatherIcons/${data.list[24].weather[0].icon}.png`,
-            `assets/layout/WeatherIcons/${data.list[32].weather[0].icon}.png`,
-          ],
-          clouds: [
-            data.list[0].clouds.all,
-            data.list[8].clouds.all,
-            data.list[16].clouds.all,
-            data.list[24].clouds.all,
-            data.list[32].clouds.all,
-          ],
-          city: data.city.name,
-          country: data.city.country,
-        });
-      });
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.interval);
-  }
-
-  componentDidMount() {
-    axios
-      .get("/existingSystems")
-      .then((response) => {
-        console.log(response);
-        this.setState({ systems: response.data });
-      })
-      .catch((err) => {
-        this.showError();
-        console.log(err);
-      });
-
-    this.getLocation();
-    this.interval = setInterval(() => {
-      let val = this.state.value;
-      val += Math.floor(Math.random() * 10) + 1;
-      if (val >= 100) {
-        val = 100;
-        clearInterval(this.interval);
-      }
-      this.setState({ value: val });
-    }, 2000);
-  }
-
-  onSortChange(event) {
-    let value = event.value;
-
-    if (value.indexOf("!") === 0)
-      this.setState({
-        sortOrder: -1,
-        sortField: value.substring(1, value.length),
-        sortKey: value,
-      });
-    else this.setState({ sortOrder: 1, sortField: value, sortKey: value });
-  }
-
-  showError() {
-    this.messages.show({ severity: "error", summary: "Something went wrong" });
-  }
-
-  handleOpenDialog = (e) => {
-    if (buttonRef.current) {
-      buttonRef.current.open(e);
-    }
-  };
 
   handleOnFileLoad = (data) => {
     console.log("---------------------------");
@@ -346,13 +264,25 @@ export class MaintenancePage extends Component {
     }
   }
 
+  renderDialogFooter() {
+    return (
+        <div>
+            <Button label="Yes" icon="pi pi-check" onClick={() => this.deleteSystem()} />
+            <Button label="No" icon="pi pi-times" onClick={() => this.onHideDialog()} className="p-button-secondary"/>
+        </div>
+    );
+}
+
   constructor() {
     super();
     this.carService = new CarService();
     this.showError = this.showError.bind(this);
+    this.onDeleteSystemClick = this.onDeleteSystemClick.bind(this);
+    this.onHideDialog = this.onHideDialog.bind(this);
 
     this.state = {
       value: 0,
+      displayDialog: false,
       selectedSystem: null,
       selectedFile: null,
       systems: [],
@@ -372,31 +302,6 @@ export class MaintenancePage extends Component {
         timeout: 5000,
         maxiumumAge: 0,
       },
-      barData: {
-        labels: [
-          "January",
-          "February",
-          "March",
-          "April",
-          "May",
-          "June",
-          "July",
-        ],
-        datasets: [
-          {
-            label: "Solar Panel 1",
-            backgroundColor: "#03A9F4",
-            borderColor: "#03A9F4",
-            data: [65, 59, 80, 81, 56, 55, 40],
-          },
-          {
-            label: "Solar Panel 2",
-            backgroundColor: "#FFC107",
-            borderColor: "#FFC107",
-            data: [28, 48, 40, 19, 86, 27, 90],
-          },
-        ],
-      },
     };
 
     this.getLocation = this.getLocation.bind(this);
@@ -415,8 +320,8 @@ export class MaintenancePage extends Component {
 
           <div className="p-col-12 p-lg-6">
             <div className="card">
-              <h1 className="centerText">Bar Monthly View</h1>
-              <Chart type="bar" data={this.state.barData} />
+              <h1 className="centerText">System Generations</h1>
+              <LineChart data={this.state.chartData} />
             </div>
           </div>
 
@@ -538,7 +443,12 @@ export class MaintenancePage extends Component {
                 style={{ marginTop: 10 }}
               />
             </div>
-
+            <div className="p-row-6 p-lg-3">
+                <Button label="Delete Selected System" icon="pi pi-times-circle" onClick={() => this.onDeleteSystemClick()} />
+                <Dialog header="Are you sure you want to delete a system?" visible={this.state.displayDialog} style={{width: '50vw'}} onHide={() => this.onHideDialog()} footer={this.renderDialogFooter()}>
+                    <p>Are you sure you want to continue? You will lose the generation data for the selected system and the process is irreversible.</p>
+                </Dialog>
+            </div>
             <div className="p-grid p-nogutter">
               <div className="containerr">
                 <div className="app-title">
