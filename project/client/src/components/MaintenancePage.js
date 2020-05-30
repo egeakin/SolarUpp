@@ -20,6 +20,13 @@ import {
     CustomDataSource,
   } from "resium";
 import { Cartesian3, createWorldTerrain, Color } from "cesium";
+import {
+    Charts,
+    ChartContainer,
+    ChartRow,
+    YAxis,
+    LineChart
+} from "react-timeseries-charts";
 
 const buttonRef = React.createRef()
 
@@ -44,7 +51,7 @@ export class MaintenancePage extends Component {
         }
       }
     
-      getCoordinates(position) {
+    getCoordinates(position) {
         this.setState({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
@@ -95,23 +102,57 @@ export class MaintenancePage extends Component {
               city: data.city.name,
               country: data.city.country,
             });
-          });
-      }
+        });
+    }
     
-      componentWillUnmount() {
+    componentWillUnmount() {
         clearInterval(this.interval);
-      }
+    }
 
     componentDidMount() {
+        var chart_data = [];
+
         axios
             .get("/existingSystems")
             .then((response) => {
                 console.log(response);
                 this.setState({ systems: response.data });
+
+                this.state.systems.forEach(initChart);
+
+                function initChart(item, index) {
+                    //var toAppend = {};
+                    //toAppend.name = this.state.systems[i].name;
+                    //toAppend.data = {};
+                    chart_data.push({name: item.name, data: {}});
+                }
             })
             .catch((err) => { this.showError(); console.log(err) });
+
         
 
+        axios
+            .get("/generation")
+            .then((response) => {
+                console.log(response);
+                console.log(chart_data);
+                this.setState({ generations: response.data});
+
+                this.state.generations.forEach(fillChart);
+
+                function fillChart(item, index) {
+                    for (var i = 0; i < chart_data.length; i++) {
+                        if (chart_data[i]["name"] == item.name) {
+                            chart_data[i]["data"][item.date.substring(0,4) + "-" + item.date.substring(4,6) + "-" + item.date.substring(6,8)] = item.generated;
+                        }
+                    }
+                }
+            })
+            .catch((err) => { this.showError(); console.log(err) });
+
+        this.setState({ chartData: chart_data});
+
+        // took from misc to make sure weather component works as it is rn
         this.getLocation();
         this.interval = setInterval(() => {
             let val = this.state.value;
@@ -206,7 +247,8 @@ export class MaintenancePage extends Component {
             selectedSystem: null,
             selectedFile: null,
             systems: [],
-            generations: [[]],
+            generations: [],
+            chartData: [],
             selectedFileData: null,
             selectedFileRowCount: 0,
             degree: "C",
@@ -244,6 +286,7 @@ export class MaintenancePage extends Component {
         this.getLocation = this.getLocation.bind(this);
         this.getCoordinates = this.getCoordinates.bind(this);
     }
+
     render() {
         return (
             <div className="p-grid p-fluid">
@@ -254,12 +297,6 @@ export class MaintenancePage extends Component {
                     </div>
                 </div>
 
-                <div className="p-col-12 p-lg-6">
-                    <div className="card">
-                        <h1 className="centerText">Bar Monthly View</h1>
-                        <Chart type="bar" data={this.state.barData} />
-                    </div>
-                </div>
 
                 <div className="p-col-12">
                     <Messages ref={(el) => this.messages = el} />
@@ -328,8 +365,6 @@ export class MaintenancePage extends Component {
                                     </aside>
                                 )}
                             </CSVReader>
-                        </div>
-
                         </div>
                         <div className="p-row-6 p-lg-6">
                             <label>
