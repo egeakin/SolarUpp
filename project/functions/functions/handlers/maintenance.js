@@ -3,7 +3,7 @@ const { db } = require("../util/admin");
 exports.addSystem = (request, response) => {
     console.log(request.body);
 
-    if (request.body.address.trim() === '' || request.body.inverterSize < 0 || request.body.name.trim() === '' || ((request.body.panelAngle > 90 || request.body.panelAngle < -90) && request.body.dynamicAngle === false)|| request.body.numPanels < 0 || request.body.panelCap < 0 || request.body.postalCode < 0 || request.body.postalCode > 999999 || request.body.systemSize !== request.body.panelCap * request.body.numPanels || request.body.age < 0 || request.body.age > 25 || !(request.body.dynamicAngle === true || request.body.dynamicAngle === false)) {
+    if (request.body.address.trim() === '' || request.body.inverterSize < 0 || request.body.name.trim() === '' || ((request.body.panelAngle > 90 || request.body.panelAngle < -90) && request.body.dynamicAngle === false)|| request.body.numPanels < 0 || request.body.panelCap < 0 || request.body.postalCode < 0 || request.body.postalCode > 999999999 || request.body.systemSize !== request.body.panelCap * request.body.numPanels || request.body.age < 0 || request.body.age > 25 || !(request.body.dynamicAngle === true || request.body.dynamicAngle === false)) {
         return response.status(400).json({ error: "Invalid arguments"});;
     }
 
@@ -26,6 +26,8 @@ exports.addSystem = (request, response) => {
         systemSize: request.body.systemSize,
         age: request.body.age,
         dynamicAngle: request.body.dynamicAngle,
+        country: request.body.country,
+        region: request.body.region,
     };
 
     db.collection("existingSystems")
@@ -111,6 +113,8 @@ exports.getUserSystems = (request, response) => {
           systemSize: doc.data().systemSize,
           age: doc.data().age,
           dynamicAngle: doc.data().dynamicAngle,
+          country: doc.data().country,
+          region: doc.data().region,
         });
       });
       return response.json(systems);

@@ -8,6 +8,7 @@ import {Button} from 'primereact/button';
 import axios from "axios";
 import {Growl} from 'primereact/growl';
 import {Checkbox} from 'primereact/checkbox';
+import { CountryDropdown, RegionDropdown, CountryRegionData } from 'react-country-region-selector';
 
 export class AddSystemPage extends Component {
     constructor() {
@@ -23,6 +24,8 @@ export class AddSystemPage extends Component {
             panelAngle: null,
             age: 0,
             dynamicAngle: false,
+            country: '', 
+            region: '',
         }
         
         this.showError = this.showError.bind(this);
@@ -50,6 +53,8 @@ export class AddSystemPage extends Component {
             systemSize: this.state.sysSize,
             age: this.state.age,
             dynamicAngle: this.state.dynamicAngle,
+            country: this.state.country, 
+            region: this.state.region,
         };
 
 
@@ -65,11 +70,20 @@ export class AddSystemPage extends Component {
         .catch((err) => {this.showError(); console.log(err)});
     };
 
+    selectCountry (val) {
+        this.setState({ country: val });
+    }
+     
+    selectRegion (val) {
+        this.setState({ region: val });
+    }
+
     showError() {
         this.messages.show({severity: 'error', summary: 'Invalid arguments', detail: 'Please make sure the details you have entered are valid'});
     }
 
     render() {
+        const { country, region } = this.state;
         return (
             <div className="p-grid p-fluid">
                 <div className="p-col-12">
@@ -102,6 +116,19 @@ export class AddSystemPage extends Component {
                             <label>Address:</label>
                         </div>
                         <InputText value={this.state.address} onChange={(e) => this.setState({address: e.target.value})} />
+                        <div className="p-col-12 p-md-6">
+                            <label>Country and Region:</label>
+                        </div>
+                        <div style={{marginTop: 0,}}>
+                            <CountryDropdown
+                                value={country}
+                                onChange={(val) => this.selectCountry(val)} />
+                            <RegionDropdown
+                                style={{marginLeft: 10,}}
+                                country={country}
+                                value={region}
+                                onChange={(val) => this.selectRegion(val)} />
+                        </div>
                         <div className="p-col-12 p-md-6">
                             <label>Postal ZIP code:</label>
                         </div>
