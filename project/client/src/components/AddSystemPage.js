@@ -7,6 +7,8 @@ import {Message} from 'primereact/message';
 import {Button} from 'primereact/button';
 import axios from "axios";
 import {Growl} from 'primereact/growl';
+import {Checkbox} from 'primereact/checkbox';
+import { CountryDropdown, RegionDropdown, CountryRegionData } from 'react-country-region-selector';
 
 export class AddSystemPage extends Component {
     constructor() {
@@ -20,7 +22,10 @@ export class AddSystemPage extends Component {
             address: '',
             postalCode: null,
             panelAngle: null,
-            
+            age: 0,
+            dynamicAngle: false,
+            country: '', 
+            region: '',
         }
         
         this.showError = this.showError.bind(this);
@@ -32,27 +37,32 @@ export class AddSystemPage extends Component {
     }
 
     saveChanges = (e) => {
-        if (this.state.sysName.trim() === '' || !isFinite(this.state.numPanels) || !isFinite(this.state.panelCap) || !isFinite(this.state.inverterSize) || this.state.address.trim() === '' || !isFinite(this.state.postalCode) || !isFinite(this.state.panelAngle)) {
+        if (this.state.sysName.trim() === '' || !isFinite(this.state.numPanels) || !isFinite(this.state.panelCap) || !isFinite(this.state.inverterSize) || this.state.address.trim() === '' || !isFinite(this.state.postalCode) || !(isFinite(this.state.panelAngle) || this.state.dynamicAngle)) {
             this.showError();
+            return;
         }
 
         let systemInfo = {
             address: this.state.address,
             inverterSize: this.state.inverterSize,
-            name: this.state.name,
+            name: this.state.sysName,
             panelAngle: this.state.panelAngle,
             numPanels: this.state.numPanels,
             panelCap: this.state.panelCap,
             postalCode: this.state.postalCode,
-            systemSize: this.state.systemSize,
+            systemSize: this.state.sysSize,
+            age: this.state.age,
+            dynamicAngle: this.state.dynamicAngle,
+            country: this.state.country, 
+            region: this.state.region,
         };
 
 
         console.log(systemInfo);
         axios
         .post("/addSystem", systemInfo)
-        .then((res) => {
-            console.log(res);
+        .then((response) => {
+            console.log(response);
             this.showSuccess();
             //window.location = "#/feasibility";
             //window.location.reload();
@@ -60,11 +70,20 @@ export class AddSystemPage extends Component {
         .catch((err) => {this.showError(); console.log(err)});
     };
 
+    selectCountry (val) {
+        this.setState({ country: val });
+    }
+     
+    selectRegion (val) {
+        this.setState({ region: val });
+    }
+
     showError() {
         this.messages.show({severity: 'error', summary: 'Invalid arguments', detail: 'Please make sure the details you have entered are valid'});
     }
 
     render() {
+        const { country, region } = this.state;
         return (
             <div className="p-grid p-fluid">
                 <div className="p-col-12">
@@ -86,13 +105,30 @@ export class AddSystemPage extends Component {
                             <label>System size (W): {this.state.sysSize}</label>
                         </div>
                         <div className="p-col-12 p-md-6">
-                            <label>inverter size (W):</label>
+                            <label>Inverter size (W):</label>
                         </div>
                         <InputText value={this.state.inverterSize} onChange={(e) => this.setState({inverterSize: e.target.value})} />
+                        <div className="p-col-12 p-md-6">
+                            <label>Age of the system:</label>
+                        </div>
+                        <InputText value={this.state.age} onChange={(e) => this.setState({age: e.target.value})} />
                         <div className="p-col-12 p-md-6">
                             <label>Address:</label>
                         </div>
                         <InputText value={this.state.address} onChange={(e) => this.setState({address: e.target.value})} />
+                        <div className="p-col-12 p-md-6">
+                            <label>Country and Region:</label>
+                        </div>
+                        <div style={{marginTop: 0,}}>
+                            <CountryDropdown
+                                value={country}
+                                onChange={(val) => this.selectCountry(val)} />
+                            <RegionDropdown
+                                style={{marginLeft: 10,}}
+                                country={country}
+                                value={region}
+                                onChange={(val) => this.selectRegion(val)} />
+                        </div>
                         <div className="p-col-12 p-md-6">
                             <label>Postal ZIP code:</label>
                         </div>
@@ -101,6 +137,10 @@ export class AddSystemPage extends Component {
                             <label>Angle of the panels:</label>
                         </div>
                         <InputText value={this.state.panelAngle} onChange={(e) => this.setState({panelAngle: e.target.value})} />
+                        <div className="p-col-12 p-md-6">
+                            <Checkbox inputId="cb" onChange={e => this.setState({dynamicAngle: e.checked})} checked={this.state.dynamicAngle}></Checkbox>
+                            <label htmlFor="cb" className="p-checkbox-label">Panels have dynamic angles</label>
+                        </div>
                     </div>
                     <Messages ref={(el) => this.messages = el} />
                     <Growl ref={(el) => this.growl = el} />
