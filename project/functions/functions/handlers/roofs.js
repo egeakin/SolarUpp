@@ -138,3 +138,27 @@ exports.uploadRoofImage = (request, response) => {
 
   busboy.end(request.rawBody);
 };
+
+// Delete a roof
+exports.deleteRoof = (request, response) => {
+  const document = db.doc(`/roofs/${request.params.roofId}`);
+  document
+    .get()
+    .then((doc) => {
+      if (!doc.exists) {
+        return response.status(404).json({ error: "Roof not found" });
+      }
+      if (doc.data().userHandle !== request.user.handle) {
+        return response.status(403).json({ error: "Unauthorized" });
+      } else {
+        return document.delete();
+      }
+    })
+    .then(() => {
+      response.json({ message: "Roof deleted successfully" });
+    })
+    .catch((err) => {
+      console.error(err);
+      return response.status(500).json({ error: err.code });
+    });
+};
