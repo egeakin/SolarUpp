@@ -62,14 +62,29 @@ export class Feasibility extends Component {
     this.restoreToDefaultValues = this.restoreToDefaultValues.bind(this);
     this.calculateFeasibility = this.calculateFeasibility.bind(this);
     this.selectBuilding = this.selectBuilding.bind(this);
+    this.deleteBuilding = this.deleteBuilding.bind(this);
     this.onChangeRangeSlider = this.onChangeRangeSlider.bind(this);
     this.onCheckboxChange = this.onCheckboxChange.bind(this);
     this.roofAreaBodyTemplate = this.roofAreaBodyTemplate.bind(this);
+    this.showError = this.showError.bind(this);
   }
 
   roofAreaBodyTemplate(rowData) {
-    let roofArea = rowData.roofArea.toFixed(2)
-    return <span >{roofArea} m<sup>2</sup></span>;
+    let roofArea = rowData.roofArea.toFixed(2);
+    return (
+      <span>
+        {roofArea} m<sup>2</sup>
+      </span>
+    );
+  }
+
+  showError() {
+    let msg = {
+      severity: "error",
+      summary: "Error Message",
+      detail: "Please be sure you select a roof.",
+    };
+    this.messages.show(msg);
   }
 
   calculateFeasibility(event) {
@@ -134,24 +149,32 @@ export class Feasibility extends Component {
     this.op1.toggle(event);
   }
 
-  
-
   printFeasbilityStudy(res) {
     this.newFeasibilityStudy = res.data;
 
     //calculate saving çağır
     let monthlydata = [];
     let i;
-    for(i = 0; i < this.newFeasibilityStudy.outputs.monthly.fixed.length; i++) {
+    for (
+      i = 0;
+      i < this.newFeasibilityStudy.outputs.monthly.fixed.length;
+      i++
+    ) {
       monthlydata.push(this.newFeasibilityStudy.outputs.monthly.fixed[i].E_m);
     }
-    let estimatedProfit25Year = this.calculateSaving(this.state.freeSpace, monthlydata, this.state.averageConsumption);
+    let estimatedProfit25Year = this.calculateSaving(
+      this.state.freeSpace,
+      monthlydata,
+      this.state.averageConsumption
+    );
     //carbon foot print cağır
-    let carbonFootPrint = this.calculateCarbonFootPrint(this.state.averageConsumption*12);
+    let carbonFootPrint = this.calculateCarbonFootPrint(
+      this.state.averageConsumption * 12
+    );
     //calculate system cost
-    let systemCost = ((this.state.freeSpace * 17) / 100 ) * 9500;
+    let systemCost = ((this.state.freeSpace * 17) / 100) * 9500;
 
-      this.newStudy = {
+    this.newStudy = {
       buildingId: this.state.dataTableSelection.roofId,
       solarPanel: "Default",
       inverter: "Default",
@@ -161,16 +184,15 @@ export class Feasibility extends Component {
       carbonFootPrint: carbonFootPrint,
       freeSpace: this.state.freeSpace,
       averageConsumption: this.state.averageConsumption,
-      energyProduction : this.newFeasibilityStudy.outputs.totals.fixed.E_y,
-      study : this.newFeasibilityStudy,
+      energyProduction: this.newFeasibilityStudy.outputs.totals.fixed.E_y,
+      study: this.newFeasibilityStudy,
       roofAngle: this.state.roofAngle,
-      averageConsumption: this.state.averageConsumption
+      averageConsumption: this.state.averageConsumption,
     };
 
     axios
       .post("/addFeasibilityStudy", this.newStudy)
-      .then((res) => {
-      })
+      .then((res) => {})
       .catch((err) => console.log(err));
 
     return new Promise((resolve) => {
@@ -181,43 +203,41 @@ export class Feasibility extends Component {
   }
 
   calculateSaving(freeSpace, monthlydata, averageConsumption) {
-    let peakPower = (freeSpace*17)/100;  //kaç kWh olduğunu gösterir
-    let systemCost = peakPower*9500; //1Kwh saat için kurulum ücreti ortalama her şey dahil 1500$
+    let peakPower = (freeSpace * 17) / 100; //kaç kWh olduğunu gösterir
+    let systemCost = peakPower * 9500; //1Kwh saat için kurulum ücreti ortalama her şey dahil 1500$
     let balance = 0;
     //first 15 year
     let income15 = 0;
     let i;
-    for(i = 0; i < 12; i++){
-        let diff = monthlydata[i] - averageConsumption;
-        if(diff > 0) {
-            income15 += diff * 0.31;
-            income15 += averageConsumption * 0.71;
-        }
-        else{
-            income15 += monthlydata[i] * 0.71;
-        }
+    for (i = 0; i < 12; i++) {
+      let diff = monthlydata[i] - averageConsumption;
+      if (diff > 0) {
+        income15 += diff * 0.31;
+        income15 += averageConsumption * 0.71;
+      } else {
+        income15 += monthlydata[i] * 0.71;
+      }
     }
     balance += income15 * 15;
     //last 10 year
     let income10 = 0;
     let j;
-    for(j = 0; j < 12; j++){
-        let diff = (monthlydata[j] * 0.85) - averageConsumption;
-        if(diff > 0) {
-            income10 += diff * 0.31;
-            income10 += averageConsumption * 0.71;
-        }
-        else{
-            income10 += monthlydata[j] * 0.71;
-        }
+    for (j = 0; j < 12; j++) {
+      let diff = monthlydata[j] * 0.85 - averageConsumption;
+      if (diff > 0) {
+        income10 += diff * 0.31;
+        income10 += averageConsumption * 0.71;
+      } else {
+        income10 += monthlydata[j] * 0.71;
+      }
     }
     balance += income10 * 10;
     return balance - systemCost;
-}
+  }
 
-calculateCarbonFootPrint(annualConsumption) {
-    return (annualConsumption* 0.534) / 1000;
-}
+  calculateCarbonFootPrint(annualConsumption) {
+    return (annualConsumption * 0.534) / 1000;
+  }
 
   restoreToDefaultValues() {
     this.messages.show({
@@ -242,7 +262,43 @@ calculateCarbonFootPrint(annualConsumption) {
     this.setState({ roofAngle: e.value });
   }
 
+  deleteBuilding(event) {
+    if (this.state.dataTableSelection == null) {
+      return this.showError();
+    }
+
+    console.log(this.state.dataTableSelection);
+
+    this.setState({
+      buildingName: null,
+      roofArea: null,
+      latitude: null,
+      longitude: null,
+      buildingType: null,
+      roofImage: null,
+      screenPositions: null,
+      buildingId: null,
+    });
+
+    console.log(this.state.dataTableSelection.roofId);
+
+    var roofID = this.state.dataTableSelection.roofId;
+    axios
+      .delete(
+        `https://us-central1-socialape-27812.cloudfunctions.net/api/roofs/${roofID}`
+      )
+      .then((res) => {
+        console.log(res);
+        this.componentDidMount();
+      })
+      .catch((err) => console.log(err));
+  }
+
   selectBuilding(event) {
+    if (this.state.dataTableSelection == null) {
+      return this.showError();
+    }
+
     console.log(this.state.dataTableSelection);
 
     this.setState({
@@ -253,7 +309,7 @@ calculateCarbonFootPrint(annualConsumption) {
       buildingType: this.state.dataTableSelection.buildingType,
       roofImage: this.state.dataTableSelection.roofImage,
       screenPositions: this.state.dataTableSelection.screenPositions,
-      buildingId: this.state.dataTableSelection.roofId
+      buildingId: this.state.dataTableSelection.roofId,
     });
 
     //console.log(this.state.roofImage);
@@ -318,7 +374,9 @@ calculateCarbonFootPrint(annualConsumption) {
         <div className="p-col-12">
           <div className="card">
             <h1>Calculate Your Solar Potential</h1>
-            <h3><b>Enter required information to have solar feasibility study.</b></h3>
+            <h3>
+              <b>Enter required information to have solar feasibility study.</b>
+            </h3>
           </div>
           <div className="card card-w-title">
             <h1>Your Registered Buildlings</h1>
@@ -346,17 +404,36 @@ calculateCarbonFootPrint(annualConsumption) {
                 sortable={false}
               />
               <Column field="address" header="Adress" sortable={false} />
-              <Column field="roofArea" header="Roof Area" body={this.roofAreaBodyTemplate} sortable={false} />
+              <Column
+                field="roofArea"
+                header="Roof Area"
+                body={this.roofAreaBodyTemplate}
+                sortable={false}
+              />
             </DataTable>
           </div>
-          <Button
-            label="Select Building"
-            onClick={this.selectBuilding}
-            aria-controls="overlay_panel"
-            aria-haspopup={true}
-            style={{ width: "200px", height: "50px" }}
-            className="p-button-success"
-          />
+          <div className="p-col">
+            <Messages ref={(el) => (this.messages = el)} />
+            <Button
+              label="Select Building"
+              onClick={this.selectBuilding}
+              aria-controls="overlay_panel"
+              aria-haspopup={true}
+              style={{ width: "200px", height: "50px" }}
+              className="p-button-success"
+            />
+          </div>
+          <div className="p-col">
+            <Messages ref={(el) => (this.messages = el)} />
+            <Button
+              label="Delete Building"
+              onClick={this.deleteBuilding}
+              aria-controls="overlay_panel"
+              aria-haspopup={true}
+              style={{ width: "200px", height: "50px" }}
+              className="p-button-success"
+            />
+          </div>
         </div>
 
         <div className="p-col-12">
@@ -525,7 +602,9 @@ calculateCarbonFootPrint(annualConsumption) {
                 <div className="p-col-6">
                   <div className="p-grid">
                     <div className="p-col-6">
-                      <label htmlFor="freeSpace">Free Space m<sup>2</sup>: </label>
+                      <label htmlFor="freeSpace">
+                        Free Space m<sup>2</sup>:{" "}
+                      </label>
                     </div>
                     <div className="p-col-6">
                       <InputText
@@ -541,7 +620,9 @@ calculateCarbonFootPrint(annualConsumption) {
                   </div>
                   <div className="p-grid">
                     <div className="p-col-6">
-                      <label htmlFor="occupiedSpace">Occupied Space m<sup>2</sup>: </label>
+                      <label htmlFor="occupiedSpace">
+                        Occupied Space m<sup>2</sup>:{" "}
+                      </label>
                     </div>
                     <div className="p-col-6">
                       <InputText
@@ -672,9 +753,7 @@ calculateCarbonFootPrint(annualConsumption) {
                             id="overlay_panel"
                             showCloseIcon={true}
                           >
-                            <FeasbilityCard
-                              newStudy={this.newStudy}
-                            />
+                            <FeasbilityCard newStudy={this.newStudy} />
                           </OverlayPanel>
                         </div>
                       )}

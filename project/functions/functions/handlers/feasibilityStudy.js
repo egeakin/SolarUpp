@@ -2,7 +2,6 @@ const { admin, db } = require("../util/admin");
 const config = require("../util/config");
 
 exports.addFeasibilityStudy = (request, response) => {
-
   const newFeasibilityStudy = {
     userHandle: request.user.handle,
     createdAt: new Date().toISOString(),
@@ -17,7 +16,7 @@ exports.addFeasibilityStudy = (request, response) => {
     study: request.body.study,
     roofAngle: request.body.roofAngle,
     averageConsumption: request.body.averageConsumption,
-    freeSpace: request.body.freeSpace
+    freeSpace: request.body.freeSpace,
   };
 
   db.collection("feasibilityStudies")
@@ -38,9 +37,9 @@ exports.getAllStudies = (request, response) => {
   db.collection("feasibilityStudies")
     .orderBy("createdAt", "asc")
     .get()
-    .then(data => {
+    .then((data) => {
       let studies = [];
-      data.forEach(doc => {
+      data.forEach((doc) => {
         if (doc.data().userHandle === request.user.handle) {
           studies.push({
             studyId: doc.id,
@@ -50,19 +49,45 @@ exports.getAllStudies = (request, response) => {
             estimatedProfit25Year: doc.data().estimatedProfit25Year,
             panelEfficiency: doc.data().panelEfficiency,
             energyProduction: doc.data().energyProduction,
-            carbonFootPrint:doc.data().carbonFootPrint,
+            carbonFootPrint: doc.data().carbonFootPrint,
             cost: doc.data().cost,
             study: doc.data().study,
             roofAngle: doc.data().roofAngle,
             averageConsumption: doc.data().averageConsumption,
-            freeSpace: doc.data().freeSpace
+            freeSpace: doc.data().freeSpace,
           });
         }
       });
       return response.json(studies);
     })
-    .catch(err => {
+    .catch((err) => {
       console.error(err);
       response.status(500).json({ error: err.code });
+    });
+};
+
+// Delete a feasibility study
+exports.deleteFeasibilityStudy = (request, response) => {
+  const document = db.doc(`/feasibilityStudies/${request.params.studyId}`);
+  document
+    .get()
+    .then((doc) => {
+      if (!doc.exists) {
+        return response
+          .status(404)
+          .json({ error: "Feasibility Study not found" });
+      }
+      if (doc.data().userHandle !== request.user.handle) {
+        return response.status(403).json({ error: "Unauthorized" });
+      } else {
+        return document.delete();
+      }
+    })
+    .then(() => {
+      response.json({ message: "Feasibility Study deleted successfully" });
+    })
+    .catch((err) => {
+      console.error(err);
+      return response.status(500).json({ error: err.code });
     });
 };
