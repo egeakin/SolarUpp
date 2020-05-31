@@ -45,7 +45,7 @@ export class MaintenancePage extends Component {
         } else {
           alert("Geolocation is not supported by this browser.");
         }
-      }
+    }
     
     getCoordinates(position) {
         this.setState({
@@ -318,7 +318,7 @@ export class MaintenancePage extends Component {
             </div>
           </div>
 
-          <div className="p-col-12 p-lg-6">
+          <div className="p-col-12 p-lg-12">
             <div className="card">
               <h1 className="centerText">System Generations</h1>
               <LineChart data={this.state.chartData} />
