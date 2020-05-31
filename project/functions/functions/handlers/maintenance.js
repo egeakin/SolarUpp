@@ -3,15 +3,33 @@ const { db } = require("../util/admin");
 exports.addSystem = (request, response) => {
     console.log(request.body);
 
-    if (request.body.address.trim() === '' || request.body.inverterSize < 0 || request.body.name.trim() === '' || ((request.body.panelAngle > 90 || request.body.panelAngle < -90) && request.body.dynamicAngle === false)|| request.body.numPanels < 0 || request.body.panelCap < 0 || request.body.postalCode < 0 || request.body.postalCode > 999999999 || request.body.systemSize !== request.body.panelCap * request.body.numPanels || request.body.age < 0 || request.body.age > 25 || !(request.body.dynamicAngle === true || request.body.dynamicAngle === false)) {
-        return response.status(400).json({ error: "Invalid arguments"});;
+    if (request.body.address.trim() === '' || request.body.inverterSize < 0 || request.body.name.trim() === '' || request.body.panelAngle > 90 || request.body.panelAngle < -90 || request.body.numPanels < 0 || request.body.panelCap < 0 || request.body.postalCode < 0 || request.body.postalCode > 999999999 || request.body.systemSize !== request.body.panelCap * request.body.numPanels || request.body.age < 0 || request.body.age > 50 ) {
+        return response.status(400).json({ error: "Invalid arguments"});
     }
+
+    var found = false;
+
+    db.collection("roofs")
+    .where("userHandle", "==", request.user.handle)
+    .get()
+    .then(data => {
+      data.forEach((doc) => {
+        if (doc.id === request.body.roofId) {
+          found = true;
+        }
+      });
+      
+      if (!found){
+        return response.status(400).json({ error: "Invalid arguments"});
+      }
+    })
+    .catch((err) => {
+      return response.status(500).json({ error: "something went wrong" });
+      console.log(request);
+      console.error(err);
+    });
 
     var angle = request.body.panelAngle;
-
-    if (request.body.dynamicAngle === true) {
-        angle = null;
-    }
 
     const newSystem = {
         address: request.body.address,
@@ -25,9 +43,12 @@ exports.addSystem = (request, response) => {
         postalCode: request.body.postalCode,
         systemSize: request.body.systemSize,
         age: request.body.age,
-        dynamicAngle: request.body.dynamicAngle,
         country: request.body.country,
         region: request.body.region,
+        lat: request.body.lat,
+        long: request.body.long,
+        roofId: request.body.roofId,
+        estimates: request.body.estimates,
     };
 
     db.collection("existingSystems")
@@ -115,6 +136,10 @@ exports.getUserSystems = (request, response) => {
           dynamicAngle: doc.data().dynamicAngle,
           country: doc.data().country,
           region: doc.data().region,
+          lat: doc.data().lat,
+          long: doc.data().long,
+          roofId: doc.data().roofId,
+          estimates: doc.data().estimates,
         });
       });
       return response.json(systems);
@@ -144,10 +169,10 @@ exports.addGeneration = (request, response) => {
   else if (generated < 0) { 
       return response.status(400).json({ error: "Invalid arguments"});
   }
-  else if (request.body.date.length != 8 || !isFinite(parseInt(request.body.date.substring(0,4))) || !isFinite(parseInt(request.body.date.substring(4,6))) || !isFinite(parseInt(request.body.date.substring(6,8)))) {
+  else if (request.body.date.length != 6 || !isFinite(parseInt(request.body.date.substring(0,4))) || !isFinite(parseInt(request.body.date.substring(4,6)))) {
       return response.status(400).json({ error: "Invalid arguments"});
   }
-  else if (parseInt(request.body.date.substring(0,4)) > currentYear || parseInt(request.body.date.substring(0,4)) < 2000 || parseInt(request.body.date.substring(4,6)) > 12 || parseInt(request.body.date.substring(4,6)) < 1 || parseInt(request.body.date.substring(6,8)) > 31 || parseInt(request.body.date.substring(6,8)) < 1) {
+  else if (parseInt(request.body.date.substring(0,4)) > currentYear || parseInt(request.body.date.substring(0,4)) < 1990 || parseInt(request.body.date.substring(4,6)) > 12 || parseInt(request.body.date.substring(4,6)) < 1) {
       return response.status(400).json({ error: "Invalid arguments"});
   }
 
