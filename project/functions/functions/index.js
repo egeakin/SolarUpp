@@ -32,7 +32,12 @@ const {
   changePassword,
 } = require("./handlers/users");
 
-const { addRoof, getUserRoofs, uploadRoofImage } = require("./handlers/roofs");
+const {
+  addRoof,
+  getUserRoofs,
+  uploadRoofImage,
+  deleteRoof,
+} = require("./handlers/roofs");
 //const { addRoof, getUserRoofs } = require("./handlers/roofs");
 
 const {
@@ -40,13 +45,20 @@ const {
   getSystem,
   deleteSystem,
   getUserSystems,
+  addGeneration,
+  getSystemGenerations,
+  getUserGenerations,
 } = require("./handlers/maintenance");
 
 const { sendMail } = require("./handlers/emails");
 const { getAllInverters } = require("./handlers/inverters");
 const { getAllSolarPanels } = require("./handlers/panels");
 
-const { addFeasibilityStudy, getAllStudies } = require("./handlers/feasibilityStudy");
+const {
+  addFeasibilityStudy,
+  getAllStudies,
+  deleteFeasibilityStudy,
+} = require("./handlers/feasibilityStudy");
 
 // scream routes
 app.get("/screams", getAllScreams);
@@ -75,11 +87,15 @@ app.post("/addSystem", FBAuth, addSystem);
 app.get("/existingSystems/:existingSystemsId", FBAuth, getSystem);
 app.delete("/existingSystems/:existingSystemsId", FBAuth, deleteSystem);
 app.get("/existingSystems", FBAuth, getUserSystems);
+app.post("/addGeneration/:existingSystemId", FBAuth, addGeneration);
+app.get("/generation/:existingSystemId", FBAuth, getSystemGenerations);
+app.get("/generation", FBAuth, getUserGenerations)
 
 // roof routes
 app.post("/addRoof", FBAuth, addRoof);
 app.get("/getRoof", FBAuth, getUserRoofs);
 app.post("/uploadRoofImage", FBAuth, uploadRoofImage);
+app.delete("/roofs/:roofId", FBAuth, deleteRoof);
 
 //inverter routes
 app.get("/getInverters", FBAuth, getAllInverters);
@@ -93,6 +109,7 @@ app.get("/getPanels", FBAuth, getAllSolarPanels);
 //feasibilityStudy Routes
 app.post("/addFeasibilityStudy", FBAuth, addFeasibilityStudy);
 app.get("/getStudies", FBAuth, getAllStudies);
+app.delete("/feasibilityStudy/:studyId", FBAuth, deleteFeasibilityStudy);
 
 //region('europe-west1)
 exports.api = functions.https.onRequest(app);
