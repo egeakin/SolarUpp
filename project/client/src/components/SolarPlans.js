@@ -61,6 +61,7 @@ export class SolarPlans extends Component {
       this.estimatedProfit25YearBodyTemplate = this.estimatedProfit25YearBodyTemplate.bind(this); //status
       this.panelEfficiencyBodyTemplate = this.panelEfficiencyBodyTemplate.bind(this); //status
       this.costBodyTemplate = this.costBodyTemplate.bind(this); //status
+      this.roofAreaTemplate = this.roofAreaTemplate.bind(this);
 
       //functions
       this.getSolarPlanDetail = this.getSolarPlanDetail.bind(this);
@@ -152,6 +153,11 @@ export class SolarPlans extends Component {
                 return "high";
             }
         }
+    }
+
+    roofAreaTemplate(rowData) {
+        let tempRoofArea = rowData.roofArea.toFixed(2);
+        return <span>{tempRoofArea} m<sup>2</sup></span>;
     }
 
     energyProductionBodyTemplate(rowData) {
@@ -361,7 +367,7 @@ export class SolarPlans extends Component {
     }
 
     calculateCarbonFootPrint(annualConsumption) {
-        return (annualConsumption* 0.6) / 1000;
+        return (annualConsumption* 0.6241) / 1000;
     }
 
     calculateSaving(freeSpace, monthlydata, averageConsumption) {
@@ -555,7 +561,7 @@ export class SolarPlans extends Component {
                                 sortable={false}
                             />
                             <Column field="address" header="Adress" sortable={false} />
-                            <Column field="roofArea" header="Roof Area" sortable={false} />
+                            <Column field="roofArea" header="Roof Area" body={this.roofAreaTemplate} sortable={false} />
                             </DataTable>
                         </div>
                         <div>
@@ -578,7 +584,7 @@ export class SolarPlans extends Component {
                                 <Column field="solarPanel" header="Solar Panel" sortable={false}/>
                                 <Column field="inverter" header="Inverter" sortable={false}/>
                                 <Column field="energyProduction" header="Energy Production mWh(Annual)" body={this.energyProductionBodyTemplate} sortable/>
-                                <Column field="carbonFootPrint" header="Carbon Foot Print" body={this.carbonFootPrintBodyTemplate}/>
+                                <Column field="carbonFootPrint" header="Reduced Carbon Foot Print" body={this.carbonFootPrintBodyTemplate}/>
                                 <Column field="estimatedProfit25Year" header="Estimated Profit(25 Year)" body={this.estimatedProfit25YearBodyTemplate} sortable/>
                                 <Column field="panelEfficiency" header="Panel Efficiency (%)" body={this.panelEfficiencyBodyTemplate} sortable/>
                                 <Column field="cost" header="Cost" body={this.costBodyTemplate} sortable/>

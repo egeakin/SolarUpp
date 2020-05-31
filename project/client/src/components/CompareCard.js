@@ -44,7 +44,7 @@ export default class CompareCard extends Component {
            <div>
                <div className="p-col-12 p-lg-6">
                 <div className="card"style={{width: '800px', height:'500px'}}>
-                    <h1 className="centerText">Your Solar Plans</h1>
+                    <h1 className="centerText">Your Solar Plans' Annual Production (mWh)</h1>
                     <div className="p-grid p-dir-col">
                         <div className="p-col">
                             <Chart type="bar" data={data} />
