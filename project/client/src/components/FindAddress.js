@@ -119,8 +119,8 @@ const triCoords = [
 const items = [
   { label: "Find Address" },
   { label: "Feasibility Study" },
-  { label: "Maintenance" },
-  { label: "Track System" },
+  { label: "Create Solar Plan" },
+  { label: "Maintenance" }
 ];
 
 const MyMapComponent = withScriptjs(

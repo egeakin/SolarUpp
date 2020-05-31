@@ -12,9 +12,16 @@ import {Messages} from 'primereact/messages';
 import {DataScroller} from 'primereact/datascroller';
 import FeasbilityCard from "./FeasbilityCard.js";
 import CompareCard from "./CompareCard.js";
+import {Steps} from "primereact/steps"
 import "./SolarPlanTable.scss"
 import axios from 'axios';
 
+const items = [
+    {label: 'Find Address'},
+    {label: 'Feasibility Study'},
+    {label: 'Create Solar Plan'},
+    {label: 'Maintenance'},
+  ];
 
 export class SolarPlans extends Component { 
     constructor() {
@@ -638,6 +645,17 @@ export class SolarPlans extends Component {
                                     rows={this.state.solarPanelData.length} buffer={0.6} header="List of Solar Panels" />
                                 </div> 
                             </div>
+                        </div>
+                        
+                        <div className="p-col p-fluid p-card p-justify-end">
+                            <Steps model={items} activeIndex={2} readOnly={false}></Steps>
+                            <Button
+                                onClick={this.proceed}
+                                label="Proceed"
+                                icon="pi pi-arrow-right"
+                                style={{ marginLeft: "85em", width: "10em" }}
+                                className="p-button-raised p-button-rounded p-button-warning"
+                            />
                         </div>
                     </div>
         );
