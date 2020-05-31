@@ -8,24 +8,22 @@ import {Button} from 'primereact/button';
 import axios from "axios";
 import {Growl} from 'primereact/growl';
 import {Checkbox} from 'primereact/checkbox';
-import { CountryDropdown, RegionDropdown, CountryRegionData } from 'react-country-region-selector';
 
-export class AddSystemPage extends Component {
+export class AddGenerationPage extends Component {
     constructor() {
         super();
         this.state = {
+            systemId: -1,
             sysName: '',
             numPanels: 0,
             panelCap: 0,
             sysSize: 0,
             inverterSize: 0,
-            address: '',
             postalCode: null,
             panelAngle: null,
             age: 0,
             dynamicAngle: false,
-            country: '', 
-            region: '',
+            generation: 0,
         }
         
         this.showError = this.showError.bind(this);
@@ -35,6 +33,8 @@ export class AddSystemPage extends Component {
     showSuccess() {
         this.growl.show({severity: 'success', summary: 'Success Message', detail: 'System added'});
     }
+
+    getSystem
 
     saveChanges = (e) => {
         if (this.state.sysName.trim() === '' || !isFinite(this.state.numPanels) || !isFinite(this.state.panelCap) || !isFinite(this.state.inverterSize) || this.state.address.trim() === '' || !isFinite(this.state.postalCode) || !(isFinite(this.state.panelAngle) || this.state.dynamicAngle)) {
@@ -53,10 +53,7 @@ export class AddSystemPage extends Component {
             systemSize: this.state.sysSize,
             age: this.state.age,
             dynamicAngle: this.state.dynamicAngle,
-            country: this.state.country, 
-            region: this.state.region,
         };
-
 
         console.log(systemInfo);
         axios
@@ -70,20 +67,11 @@ export class AddSystemPage extends Component {
         .catch((err) => {this.showError(); console.log(err)});
     };
 
-    selectCountry (val) {
-        this.setState({ country: val });
-    }
-     
-    selectRegion (val) {
-        this.setState({ region: val });
-    }
-
     showError() {
         this.messages.show({severity: 'error', summary: 'Invalid arguments', detail: 'Please make sure the details you have entered are valid'});
     }
 
     render() {
-        const { country, region } = this.state;
         return (
             <div className="p-grid p-fluid">
                 <div className="p-col-12">
@@ -116,19 +104,6 @@ export class AddSystemPage extends Component {
                             <label>Address:</label>
                         </div>
                         <InputText value={this.state.address} onChange={(e) => this.setState({address: e.target.value})} />
-                        <div className="p-col-12 p-md-6">
-                            <label>Country and Region:</label>
-                        </div>
-                        <div style={{marginTop: 0,}}>
-                            <CountryDropdown
-                                value={country}
-                                onChange={(val) => this.selectCountry(val)} />
-                            <RegionDropdown
-                                style={{marginLeft: 10,}}
-                                country={country}
-                                value={region}
-                                onChange={(val) => this.selectRegion(val)} />
-                        </div>
                         <div className="p-col-12 p-md-6">
                             <label>Postal ZIP code:</label>
                         </div>
