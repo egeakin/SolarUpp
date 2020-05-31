@@ -11,12 +11,21 @@ import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { Chart } from "primereact/chart";
 import FeasbilityCard from "./FeasbilityCard.js";
+import {Steps} from "primereact/steps"
 import "./centerPanel.scss";
 import axios from "axios";
 import cannyEdgeDetector from "canny-edge-detector";
 import Image from "image-js";
 
+const items = [
+  {label: 'Find Address'},
+  {label: 'Feasibility Study'},
+  {label: 'Create Solar Plan'},
+  {label: 'Maintenance'},
+];
+
 export class Feasibility extends Component {
+
   constructor() {
     var newFeasibilityStudy;
     var newStudy;
@@ -348,6 +357,11 @@ export class Feasibility extends Component {
       })
       .catch((err) => console.log(err));
     console.log(333);
+  }
+
+  proceed() {
+      window.location = "#/solarPlans"
+      window.location.reload()
   }
 
   componentDidMount() {
@@ -784,7 +798,20 @@ export class Feasibility extends Component {
             <Chart type="pie" data={this.state.charts} />
           </div>
         </div>
+
+        <div className="p-col p-fluid p-card p-justify-end">
+              <Steps model={items} activeIndex={1} ></Steps>
+              <Button
+                onClick={this.proceed}
+                label="Proceed"
+                icon="pi pi-arrow-right"
+                style={{ marginLeft: "85em", width: "10em" }}
+                className="p-button-raised p-button-rounded p-button-warning"
+              />
+        </div>
+
       </div>
+
     );
   }
 }

@@ -14,6 +14,14 @@ import FeasbilityCard from "./FeasbilityCard.js";
 import CompareCard from "./CompareCard.js";
 import "./SolarPlanTable.scss";
 import axios from "axios";
+import {Steps} from "primereact/steps"
+
+const items = [
+    {label: 'Find Address'},
+    {label: 'Feasibility Study'},
+    {label: 'Create Solar Plan'},
+    {label: 'Maintenance'},
+  ];
 
 export class SolarPlans extends Component {
   constructor() {
@@ -69,6 +77,7 @@ export class SolarPlans extends Component {
       this
     ); //status
     this.costBodyTemplate = this.costBodyTemplate.bind(this); //status
+    this.roofAreaTemplate = this.roofAreaTemplate.bind(this);
 
     //functions
     this.getSolarPlanDetail = this.getSolarPlanDetail.bind(this);
@@ -104,6 +113,11 @@ export class SolarPlans extends Component {
       }
     });
   }
+
+  roofAreaTemplate(rowData) {
+    let tempRoofArea = rowData.roofArea.toFixed(2);
+    return <span>{tempRoofArea} m<sup>2</sup></span>;
+}
 
   renderSolarPlans(roofPlans) {
     //set state roof angle ve average consumption ekle
@@ -157,6 +171,11 @@ export class SolarPlans extends Component {
       }
     }
   }
+
+  roofAreaTemplate(rowData) {
+    let tempRoofArea = rowData.roofArea.toFixed(2);
+    return <span>{tempRoofArea} m<sup>2</sup></span>;
+}
 
   energyProductionBodyTemplate(rowData) {
     let energyProduction = rowData.energyProduction.toFixed(2);
@@ -444,7 +463,7 @@ export class SolarPlans extends Component {
   }
 
   calculateCarbonFootPrint(annualConsumption) {
-    return (annualConsumption * 0.6) / 1000;
+    return (annualConsumption * 0.6241) / 1000;
   }
 
   calculateSaving(freeSpace, monthlydata, averageConsumption) {
@@ -491,6 +510,11 @@ export class SolarPlans extends Component {
   renderHeader() {
     return <div>List of Solar Plans</div>;
   }
+
+  proceed() {
+    window.location = "#/maintenance"
+    window.location.reload()
+}
 
   componentDidMount() {
     this.getSolarPanels().then((data) =>
@@ -708,7 +732,7 @@ export class SolarPlans extends Component {
                   sortable={false}
                 />
                 <Column field="address" header="Adress" sortable={false} />
-                <Column field="roofArea" header="Roof Area" sortable={false} />
+                <Column field="roofArea" header="Roof Area" body={this.roofAreaTemplate} sortable={false} />
               </DataTable>
             </div>
             <div>
@@ -749,7 +773,7 @@ export class SolarPlans extends Component {
               />
               <Column
                 field="carbonFootPrint"
-                header="Carbon Foot Print"
+                header="Reduced Carbon Foot Print"
                 body={this.carbonFootPrintBodyTemplate}
               />
               <Column
@@ -860,6 +884,16 @@ export class SolarPlans extends Component {
             </div>
           </div>
         </div>
+        <div className="p-col p-fluid p-card p-justify-end">
+            <Steps model={items} activeIndex={2} readOnly={false}></Steps>
+                <Button
+                    onClick={this.proceed}
+                    label="Proceed"
+                    icon="pi pi-arrow-right"
+                    style={{ marginLeft: "85em", width: "10em" }}
+                    className="p-button-raised p-button-rounded p-button-warning"
+                />
+            </div>
       </div>
     );
   }
