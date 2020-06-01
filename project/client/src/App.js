@@ -9,7 +9,7 @@ import { FormsDemo } from "./components/FormsDemo";
 import { SampleDemo } from "./components/SampleDemo";
 import { DataDemo } from "./components/DataDemo";
 import { PanelsDemo } from "./components/PanelsDemo";
-import FindAddress  from "./components/FindAddress";
+import FindAddress from "./components/FindAddress";
 import { MenusDemo } from "./components/MenusDemo";
 import { MessagesDemo } from "./components/MessagesDemo";
 import { ChartsDemo } from "./components/ChartsDemo";
@@ -142,144 +142,31 @@ class App extends Component {
           window.location = "/";
         },
       },
+
       {
-        label: "Menu Modes",
-        icon: "pi pi-fw pi-cog",
-        items: [
-          {
-            label: "Static Menu",
-            icon: "pi pi-fw pi-bars",
-            command: () => this.setState({ layoutMode: "static" }),
-          },
-          {
-            label: "Overlay Menu",
-            icon: "pi pi-fw pi-bars",
-            command: () => this.setState({ layoutMode: "overlay" }),
-          },
-        ],
-      },
-      {
-        label: "Menu Colors",
-        icon: "pi pi-fw pi-align-left",
-        items: [
-          {
-            label: "Dark",
-            icon: "pi pi-fw pi-bars",
-            command: () => this.setState({ layoutColorMode: "dark" }),
-          },
-          {
-            label: "Light",
-            icon: "pi pi-fw pi-bars",
-            command: () => this.setState({ layoutColorMode: "light" }),
-          },
-        ],
-      },
-      {
-        label: "Components",
+        label: "Find Address",
         icon: "pi pi-fw pi-globe",
-        badge: "9",
-        items: [
-          {
-            label: "Sample Page",
-            icon: "pi pi-fw pi-th-large",
-            to: "/sample",
-          },
-          { label: "Forms", icon: "pi pi-fw pi-file", to: "/forms" },
-          { label: "Data", icon: "pi pi-fw pi-table", to: "/data" },
-          { label: "Panels", icon: "pi pi-fw pi-list", to: "/panels" },
-          { label: "Menus", icon: "pi pi-fw pi-plus", to: "/menus" },
-          { label: "Messages", icon: "pi pi-fw pi-spinner", to: "/messages" },
-          { label: "Charts", icon: "pi pi-fw pi-chart-bar", to: "/charts" },
-          { label: "Misc", icon: "pi pi-fw pi-upload", to: "/misc" },
-        ],
+        to: "/findAddress",
       },
       {
-        label: "Template Pages",
-        icon: "pi pi-fw pi-file",
-        items: [
-          {
-            label: "Maintenance Page",
-            icon: "pi pi-fw pi-circle-off",
-            to: "/maintenance",
-          },
-          {
-            label: "Find Address",
-            icon: "pi pi-fw pi-circle-off",
-            to: "/findAddress",
-          },
-          {
-            label: "Feasibility Study",
-            icon: "pi pi-fw pi-circle-off",
-            to: "/feasibility",
-          },
-          {
-            label: "See Solar Plans",
-            icon: "pi pi-fw pi-circle-off",
-            to: "/solarPlans",
-          },
-          {
-            label: "Compare Plans",
-            icon: "pi pi-fw pi-circle-off",
-            to: "/comparePlans",
-          },
-          {
-            label: "Add System",
-            icon: "pi pi-fw pi-circle-off",
-            to: "/AddSystemPage",
-          },
-        ],
+        label: "Feasibility Study",
+        icon: "pi pi-fw pi-paperclip",
+        to: "/feasibility",
       },
       {
-        label: "Menu Hierarchy",
-        icon: "pi pi-fw pi-search",
-        items: [
-          {
-            label: "Submenu 1",
-            icon: "pi pi-fw pi-bookmark",
-            items: [
-              {
-                label: "Submenu 1.1",
-                icon: "pi pi-fw pi-bookmark",
-                items: [
-                  { label: "Submenu 1.1.1", icon: "pi pi-fw pi-bookmark" },
-                  { label: "Submenu 1.1.2", icon: "pi pi-fw pi-bookmark" },
-                  { label: "Submenu 1.1.3", icon: "pi pi-fw pi-bookmark" },
-                ],
-              },
-              {
-                label: "Submenu 1.2",
-                icon: "pi pi-fw pi-bookmark",
-                items: [
-                  { label: "Submenu 1.2.1", icon: "pi pi-fw pi-bookmark" },
-                  { label: "Submenu 1.2.2", icon: "pi pi-fw pi-bookmark" },
-                ],
-              },
-            ],
-          },
-          {
-            label: "Submenu 2",
-            icon: "pi pi-fw pi-bookmark",
-            items: [
-              {
-                label: "Submenu 2.1",
-                icon: "pi pi-fw pi-bookmark",
-                items: [
-                  { label: "Submenu 2.1.1", icon: "pi pi-fw pi-bookmark" },
-                  { label: "Submenu 2.1.2", icon: "pi pi-fw pi-bookmark" },
-                  { label: "Submenu 2.1.3", icon: "pi pi-fw pi-bookmark" },
-                ],
-              },
-              {
-                label: "Submenu 2.2",
-                icon: "pi pi-fw pi-bookmark",
-                items: [
-                  { label: "Submenu 2.2.1", icon: "pi pi-fw pi-bookmark" },
-                  { label: "Submenu 2.2.2", icon: "pi pi-fw pi-bookmark" },
-                ],
-              },
-            ],
-          },
-        ],
+        label: "See Solar Plans",
+        icon: "pi pi-fw pi-sitemap",
+        to: "/solarPlans",
+      },
+      {
+        label: "Add System",
+        icon: "pi pi-fw pi-eject",
+        to: "/AddSystemPage",
+      },
+      {
+        label: "Maintenance Page",
+        icon: "pi pi-fw pi-chart-bar",
+        to: "/maintenance",
       },
     ];
   }

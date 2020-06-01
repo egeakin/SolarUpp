@@ -11,21 +11,21 @@ import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { Chart } from "primereact/chart";
 import FeasbilityCard from "./FeasbilityCard.js";
-import {Steps} from "primereact/steps"
+import { Steps } from "primereact/steps";
 import "./centerPanel.scss";
 import axios from "axios";
 import cannyEdgeDetector from "canny-edge-detector";
 import Image from "image-js";
+import { animateScroll } from "react-scroll";
 
 const items = [
-  {label: 'Find Address'},
-  {label: 'Feasibility Study'},
-  {label: 'Create Solar Plan'},
-  {label: 'Maintenance'},
+  { label: "Find Address" },
+  { label: "Feasibility Study" },
+  { label: "Create Solar Plan" },
+  { label: "Maintenance" },
 ];
 
 export class Feasibility extends Component {
-
   constructor() {
     var newFeasibilityStudy;
     var newStudy;
@@ -100,11 +100,17 @@ export class Feasibility extends Component {
     let angle;
     if (Array.isArray(this.state.roofAngle) == true) {
       angle = (this.state.roofAngle[0] + this.state.roofAngle[1]) / 2;
-    } else if (this.state.roofAngle == null) {
+      if (angle < 20) {
+        angle = "35";
+      }
+    } else if (this.state.roofAngle == null || this.state.roofAngle == 0) {
       angle = "35";
+      console.log("000");
     } else if (Array.isArray(this.state.roofAngle) == false) {
       angle = this.state.roofAngle;
     }
+
+    this.setState({ roofAngle: angle });
 
     //send request
     let url =
@@ -357,11 +363,12 @@ export class Feasibility extends Component {
       })
       .catch((err) => console.log(err));
     console.log(333);
+    animateScroll.scrollMore(600);
   }
 
   proceed() {
-      window.location = "#/solarPlans"
-      window.location.reload()
+    window.location = "#/solarPlans";
+    window.location.reload();
   }
 
   componentDidMount() {
@@ -800,18 +807,16 @@ export class Feasibility extends Component {
         </div>
 
         <div className="p-col p-fluid p-card p-justify-end">
-              <Steps model={items} activeIndex={1} ></Steps>
-              <Button
-                onClick={this.proceed}
-                label="Proceed"
-                icon="pi pi-arrow-right"
-                style={{ marginLeft: "85em", width: "10em" }}
-                className="p-button-raised p-button-rounded p-button-warning"
-              />
+          <Steps model={items} activeIndex={1}></Steps>
+          <Button
+            onClick={this.proceed}
+            label="Proceed"
+            icon="pi pi-arrow-right"
+            style={{ marginLeft: "85em", width: "10em" }}
+            className="p-button-raised p-button-rounded p-button-warning"
+          />
         </div>
-
       </div>
-
     );
   }
 }

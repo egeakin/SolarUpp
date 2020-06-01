@@ -14,14 +14,14 @@ import FeasbilityCard from "./FeasbilityCard.js";
 import CompareCard from "./CompareCard.js";
 import "./SolarPlanTable.scss";
 import axios from "axios";
-import {Steps} from "primereact/steps"
+import { Steps } from "primereact/steps";
 
 const items = [
-    {label: 'Find Address'},
-    {label: 'Feasibility Study'},
-    {label: 'Create Solar Plan'},
-    {label: 'Maintenance'},
-  ];
+  { label: "Find Address" },
+  { label: "Feasibility Study" },
+  { label: "Create Solar Plan" },
+  { label: "Maintenance" },
+];
 
 export class SolarPlans extends Component {
   constructor() {
@@ -116,12 +116,17 @@ export class SolarPlans extends Component {
 
   roofAreaTemplate(rowData) {
     let tempRoofArea = rowData.roofArea.toFixed(2);
-    return <span>{tempRoofArea} m<sup>2</sup></span>;
-}
+    return (
+      <span>
+        {tempRoofArea} m<sup>2</sup>
+      </span>
+    );
+  }
 
   renderSolarPlans(roofPlans) {
     //set state roof angle ve average consumption ekle
     this.setState({ averageConsumption: roofPlans[0].averageConsumption });
+    console.log(roofPlans);
     this.setState({ roofAngle: roofPlans[0].roofAngle });
     this.setState({ freeSpace: this.state.dataTableSelection.roofArea });
     this.setState({
@@ -174,8 +179,12 @@ export class SolarPlans extends Component {
 
   roofAreaTemplate(rowData) {
     let tempRoofArea = rowData.roofArea.toFixed(2);
-    return <span>{tempRoofArea} m<sup>2</sup></span>;
-}
+    return (
+      <span>
+        {tempRoofArea} m<sup>2</sup>
+      </span>
+    );
+  }
 
   energyProductionBodyTemplate(rowData) {
     let energyProduction = rowData.energyProduction.toFixed(2);
@@ -512,9 +521,9 @@ export class SolarPlans extends Component {
   }
 
   proceed() {
-    window.location = "#/maintenance"
-    window.location.reload()
-}
+    window.location = "#/maintenance";
+    window.location.reload();
+  }
 
   componentDidMount() {
     this.getSolarPanels().then((data) =>
@@ -534,6 +543,7 @@ export class SolarPlans extends Component {
         this.setState({
           buildings: buildings,
         });
+        console.log(this.state.buildings);
       })
       .catch((err) => console.log(err));
   }
@@ -732,7 +742,12 @@ export class SolarPlans extends Component {
                   sortable={false}
                 />
                 <Column field="address" header="Adress" sortable={false} />
-                <Column field="roofArea" header="Roof Area" body={this.roofAreaTemplate} sortable={false} />
+                <Column
+                  field="roofArea"
+                  header="Roof Area"
+                  body={this.roofAreaTemplate}
+                  sortable={false}
+                />
               </DataTable>
             </div>
             <div>
@@ -773,12 +788,12 @@ export class SolarPlans extends Component {
               />
               <Column
                 field="carbonFootPrint"
-                header="Reduced Carbon Foot Print"
+                header="Reduced Carbon Foot Print (Tons)"
                 body={this.carbonFootPrintBodyTemplate}
               />
               <Column
                 field="estimatedProfit25Year"
-                header="Estimated Profit(25 Year)"
+                header="Estimated Profit (25 Year)"
                 body={this.estimatedProfit25YearBodyTemplate}
                 sortable
               />
@@ -885,15 +900,15 @@ export class SolarPlans extends Component {
           </div>
         </div>
         <div className="p-col p-fluid p-card p-justify-end">
-            <Steps model={items} activeIndex={2} readOnly={false}></Steps>
-                <Button
-                    onClick={this.proceed}
-                    label="Proceed"
-                    icon="pi pi-arrow-right"
-                    style={{ marginLeft: "85em", width: "10em" }}
-                    className="p-button-raised p-button-rounded p-button-warning"
-                />
-            </div>
+          <Steps model={items} activeIndex={2} readOnly={false}></Steps>
+          <Button
+            onClick={this.proceed}
+            label="Proceed"
+            icon="pi pi-arrow-right"
+            style={{ marginLeft: "85em", width: "10em" }}
+            className="p-button-raised p-button-rounded p-button-warning"
+          />
+        </div>
       </div>
     );
   }
