@@ -33,6 +33,7 @@ export class AddSystemPage extends Component {
             lat: null,
             long: null,
             roofId: null,
+            monthly_data: [],
         }
 
         this.showError = this.showError.bind(this);
@@ -62,7 +63,7 @@ export class AddSystemPage extends Component {
             "&" +
             //  'pvtechchoice=' + obj.pvtechchoice + '&' +
             "peakpower=" +
-            Math.min(this.state.systemSize, this.state.inverterSize) +
+            Math.min(this.state.sysSize, this.state.inverterSize) +
             "&" +
             "loss=" +
             "14" +
@@ -81,41 +82,40 @@ export class AddSystemPage extends Component {
                 let i;
                 for (i = 0; i < response.data.outputs.monthly.fixed.length; i++) {
                     monthlydata.push(response.data.outputs.monthly.fixed[i].E_m);
+                    this.setState({ monthly_data: monthlydata });
                 }
+
+                let systemInfo = {
+                    address: this.state.address,
+                    inverterSize: this.state.inverterSize,
+                    name: this.state.sysName,
+                    panelAngle: this.state.panelAngle,
+                    numPanels: this.state.numPanels,
+                    panelCap: this.state.panelCap,
+                    postalCode: this.state.postalCode,
+                    systemSize: this.state.sysSize,
+                    age: this.state.age,
+                    dynamicAngle: this.state.dynamicAngle,
+                    country: this.state.country,
+                    region: this.state.region,
+                    lat: this.state.lat,
+                    long: this.state.long,
+                    roofId: this.state.roofId,
+                    estimates: this.state.monthly_data,
+                };
+
+                console.log(systemInfo);
+                axios
+                    .post("/addSystem", systemInfo)
+                    .then((response) => {
+                        console.log(response);
+                        this.showSuccess();
+                        //window.location = "#/feasibility";
+                        //window.location.reload();
+                    })
+                    .catch((err) => { this.showError(); console.log(err) });
             })
-
-        let systemInfo = {
-            address: this.state.address,
-            inverterSize: this.state.inverterSize,
-            name: this.state.sysName,
-            panelAngle: this.state.panelAngle,
-            numPanels: this.state.numPanels,
-            panelCap: this.state.panelCap,
-            postalCode: this.state.postalCode,
-            systemSize: this.state.sysSize,
-            age: this.state.age,
-            dynamicAngle: this.state.dynamicAngle,
-            country: this.state.country,
-            region: this.state.region,
-            lat: this.state.lat,
-            long: this.state.long,
-            roofId: this.state.roofId,
-            estimates: monthlydata,
-        };
-
-
-        console.log(systemInfo);
-        axios
-            .post("/addSystem", systemInfo)
-            .then((response) => {
-                console.log(response);
-                this.showSuccess();
-                //window.location = "#/feasibility";
-                //window.location.reload();
-            })
-            .catch((err) => { this.showError(); console.log(err) });
-
-
+            .catch((err) => { console.log(err); });
     };
 
     selectCountry(val) {

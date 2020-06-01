@@ -33,11 +33,6 @@ const styles = (theme) => ({
     ...styles,
 });
 
-
-async function updateEstimates() {
-
-}
-
 export class MaintenancePage extends Component {
 
     getLocation() {
@@ -153,10 +148,8 @@ export class MaintenancePage extends Component {
                     buildings: buildings,
                 });
             })
-            .catch((err) => console.log(err));
-
-
-        axios
+            .then(() => {
+                axios
             .get("/existingSystems")
             .then((response) => {
                 console.log(response);
@@ -171,7 +164,8 @@ export class MaintenancePage extends Component {
                     chart_data.push({ name: item.name, data: {} });
                     chart_data.push({ name: "estimated " + item.name, data: {} });
                     systemIndex.push(item.existingSystemsId);
-                    estimationsx.push(item.estimations);
+                    estimationsx.push(item.estimates);
+                    console.log(estimationsx);
                 }
 
                 this.setState({ estimations: estimationsx });
@@ -189,63 +183,63 @@ export class MaintenancePage extends Component {
 
                         function fillChart(item, index) {
                             for (var i = 0; i < chart_data.length; i = i + 2) {
-                                if (systemIndex[i] == item["systemId"]) {
-                                    chart_data[i]["data"][item["date"].substring(0, 4) + "-" + item["date"].substring(4, 6) + "-" + "01"] = item["generated"];
+                                if (systemIndex[i / 2] == item["systemId"]) {
+                                    chart_data[i]["data"][item["date"].substring(0, 4) + "-" + item["date"].substring(4, 6) + "-" + "15"] = item["generated"];
                                 }
                             }
                         }
                         console.log(chart_data);
+                        var index = 0;
+                        console.log(this.state.systems.length);
+                        while (index < this.state.systems.length) {
+
+                            var item = this.state.systems[index];
+                            var monthlydata = this.state.estimations[index];
+                            var currentTime = new Date();
+                            var currentYear = currentTime.getFullYear();
+                            var currentMonth = currentTime.getMonth() + 1;
+
+                            console.log(monthlydata);
+                            console.log(item);
+
+
+                            var startYear = currentYear - item.age;
+                            var iterationMonth = 1;
+                            var printingMonth;
+
+                            while (startYear < currentYear || iterationMonth !== currentMonth) {
+                                if (iterationMonth < 10) {
+                                    printingMonth = "0" + iterationMonth;
+                                }
+                                else {
+                                    printingMonth = "" + iterationMonth;
+                                }
+                                chart_data[(index * 2) + 1]["data"][startYear + "-" + printingMonth + "-" + "15"] = item.estimates[iterationMonth - 1];
+
+                                if (iterationMonth === 12) {
+                                    iterationMonth = 1;
+                                    startYear += 1;
+                                }
+                                else {
+                                    iterationMonth += 1;
+                                }
+                            }
+                            index++;
+                        }
+                        
+                        console.log(chart_data);
+                        this.setState({chartData: chart_data});
                     })
                     .catch((err) => { this.showError(); console.log(err) });
             })
-            .then(() => {
-                var index = 0;
-                while (index < this.state.systems.length) {
-
-                    var building = this.state.buildings[0];
-
-                    for (var i = 1; i < this.state.buildings.length; i++) {
-                        if (this.state.buildings[i].roofId === item.roofId) {
-                            building = this.state.buildings[i];
-                        }
-                    }
-
-                    var item = this.state.systems[index];
-                    var monthlydata = this.state.estimations[index];
-                    var currentTime = new Date();
-                    var currentYear = currentTime.getFullYear();
-                    var currentMonth = currentTime.getMonth() + 1;
-
-
-                    var startYear = currentYear - item.age;
-                    var iterationMonth = 1;
-                    var printingMonth;
-
-                    while (startYear < currentYear || iterationMonth !== currentMonth) {
-                        if (iterationMonth < 10) {
-                            printingMonth = "0" + iterationMonth;
-                        }
-                        else {
-                            printingMonth = "" + iterationMonth;
-                        }
-                        console.log(index);
-                        console.log((index * 2) + 1);
-                        chart_data[(index * 2) + 1]["data"][startYear + "-" + printingMonth + "-" + "01"] = monthlydata[iterationMonth - 1];
-
-                        if (iterationMonth === 12) {
-                            iterationMonth = 1;
-                            startYear += 1;
-                        }
-                        else {
-                            iterationMonth += 1;
-                        }
-                    }
-                    index++;
-                }
+            .catch((err) => console.log(err));
             })
             .catch((err) => console.log(err));
 
+
             
+
+
         // took from misc to make sure weather component works as it is rn
         this.getLocation();
         this.interval = setInterval(() => {
@@ -330,7 +324,7 @@ export class MaintenancePage extends Component {
                     generationInfo
                 )
                 .then((response) => {
-                    console.log(response);
+                    this.componentDidMount();
                 })
                 .catch((err) => {
                     console.log(err);
