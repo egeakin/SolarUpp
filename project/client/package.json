@@ -29,7 +29,7 @@
     "html2canvas": "^1.0.0-rc.5",
     "image-filter-grayscale": "^1.0.1",
     "image-js": "^0.21.9",
-    "jspdf": "^1.5.3",
+    "jspdf": "^2.3.1",
     "jwt-decode": "^2.2.0",
     "node-geometry-library": "^1.2.2",
     "node-sass": "^4.14.1",
