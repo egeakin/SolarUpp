@@ -32,7 +32,7 @@
     "jspdf": "^1.5.3",
     "jwt-decode": "^2.2.0",
     "node-geometry-library": "^1.2.2",
-    "node-sass": "^4.14.1",
+    "node-sass": "^7.0.0",
     "primeflex": "1.0.0-rc.1",
     "primeicons": "1.0.0",
     "primereact": "3.1.7",
